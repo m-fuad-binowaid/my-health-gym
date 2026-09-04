@@ -450,7 +450,7 @@ function App() {
                   onClick={() => setActiveBranchId(branch.id)}
                 >
                   <span className="branch-index">0{index + 1}</span>
-                  <span>
+                  <span className="branch-tab-copy">
                     <strong>{branch.name}</strong>
                     <small>{branch.englishName}</small>
                   </span>
@@ -559,9 +559,9 @@ function App() {
                   <h3>{plan.name}</h3>
                   <div className="price">
                     <strong>{plan.price}</strong>
-                    <span>
+                    <span className="price-meta">
                       ريال
-                      <small>{plan.period}</small>
+                      <small className="price-period">{plan.period}</small>
                     </span>
                   </div>
                   <div className="plan-separator" />
