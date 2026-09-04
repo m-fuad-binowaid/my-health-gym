@@ -270,8 +270,8 @@ img {
 .hero-image {
   background-position: center;
   background-size: cover;
-  filter: saturate(0.75);
-  opacity: 0.54;
+  filter: saturate(0.95) contrast(1.04) brightness(1.08);
+  opacity: 0.86;
   transform: scale(1.03);
 }
 
@@ -281,8 +281,8 @@ img {
   z-index: -1;
   inset: 0;
   background:
-    linear-gradient(90deg, rgba(11, 12, 16, 0.96) 5%, rgba(11, 12, 16, 0.75) 48%, rgba(11, 12, 16, 0.4) 100%),
-    linear-gradient(180deg, rgba(11, 12, 16, 0.26), #0b0c10 96%);
+    linear-gradient(90deg, rgba(11, 12, 16, 0.28) 0%, rgba(11, 12, 16, 0.38) 38%, rgba(11, 12, 16, 0.82) 78%, rgba(11, 12, 16, 0.9) 100%),
+    linear-gradient(180deg, rgba(11, 12, 16, 0.08) 0%, rgba(11, 12, 16, 0.24) 58%, #0b0c10 98%);
 }
 
 .hero-grid {
@@ -1464,8 +1464,8 @@ img {
 
   .hero-section::after {
     background:
-      linear-gradient(180deg, rgba(11, 12, 16, 0.54), #0b0c10 93%),
-      linear-gradient(90deg, rgba(11, 12, 16, 0.6), rgba(11, 12, 16, 0.45));
+      linear-gradient(180deg, rgba(11, 12, 16, 0.16) 0%, rgba(11, 12, 16, 0.42) 52%, #0b0c10 94%),
+      linear-gradient(90deg, rgba(11, 12, 16, 0.3), rgba(11, 12, 16, 0.56));
   }
 
   .hero-content {
