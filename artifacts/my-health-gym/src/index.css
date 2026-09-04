@@ -269,7 +269,7 @@ img {
 
 .hero-image {
   background-position: center;
-  background-size: cover;
+  background-size: 100% 100%;
   filter: saturate(0.95) contrast(1.04) brightness(1.08);
   opacity: 0.86;
   transform: scale(1.03);
@@ -1466,6 +1466,14 @@ img {
     background:
       linear-gradient(180deg, rgba(11, 12, 16, 0.16) 0%, rgba(11, 12, 16, 0.42) 52%, #0b0c10 94%),
       linear-gradient(90deg, rgba(11, 12, 16, 0.3), rgba(11, 12, 16, 0.56));
+  }
+
+  .hero-image {
+    background-position: center top;
+    background-size: auto 78%;
+    background-repeat: no-repeat;
+    opacity: 0.82;
+    transform: none;
   }
 
   .hero-content {
