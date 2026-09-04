@@ -92,6 +92,16 @@ img {
   text-align: right;
 }
 
+.brand-logo {
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  border: 1px solid rgba(182, 242, 58, 0.55);
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 24px rgba(182, 242, 58, 0.14);
+}
+
 .brand-mark {
   width: 38px;
   height: 38px;
@@ -1187,17 +1197,15 @@ img {
   min-height: 240px;
 }
 
-.final-cta-mark {
+.final-cta-logo {
   width: 72px;
   height: 72px;
   display: grid;
   flex: 0 0 72px;
-  place-items: center;
   border: 2px solid var(--ink);
-  font-size: 24px;
-  font-weight: 900;
-  letter-spacing: -0.09em;
-  transform: skew(-8deg);
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 8px 22px rgba(11, 12, 16, 0.15);
 }
 
 .final-cta .eyebrow {
@@ -1608,7 +1616,7 @@ img {
     padding-block: 44px;
   }
 
-  .final-cta-mark {
+  .final-cta-logo {
     grid-row: 1 / 3;
   }
 

@@ -23,10 +23,11 @@ import {
 import cardioImage from '@assets/IMG_8991_1788483814732.jpeg';
 import turfImage from '@assets/IMG_8992_1788483814732.jpeg';
 import treadmillsImage from '@assets/IMG_8994_1788483814732.jpeg';
-import exteriorImage from '@assets/IMG_8995_1788483814732.jpeg';
+import exteriorImage from '@assets/IMG_8995_1788484733609.jpeg';
 import poolImage from '@assets/IMG_8996_1788483814732.jpeg';
 import weightsImage from '@assets/IMG_8997_1788483814732.jpeg';
 import groupImage from '@assets/IMG_8998_1788483814732.jpeg';
+import logoImage from '@assets/my-health-logo.png';
 
 type Branch = {
   id: string;
@@ -218,7 +219,7 @@ function App() {
             onClick={() => scrollToSection('top')}
             aria-label="العودة إلى بداية الصفحة"
           >
-            <span className="brand-mark">MH</span>
+            <img className="brand-logo" src={logoImage} alt="شعار مركز صحتي الرياضي" />
             <span className="brand-copy">
               <strong>مركز صحتي الرياضي</strong>
               <small>MY HEALTH</small>
@@ -618,7 +619,11 @@ function App() {
 
         <section className="final-cta">
           <div className="container final-cta-inner">
-            <div className="final-cta-mark">MH</div>
+            <img
+              className="final-cta-logo"
+              src={logoImage}
+              alt="شعار مركز صحتي الرياضي"
+            />
             <div>
               <div className="eyebrow eyebrow-lime">جاهز للخطوة الأولى؟</div>
               <h2>
@@ -641,7 +646,7 @@ function App() {
         <div className="container footer-main">
           <div className="footer-brand">
             <div className="brand footer-brand-lockup">
-              <span className="brand-mark">MH</span>
+              <img className="brand-logo" src={logoImage} alt="شعار مركز صحتي الرياضي" />
               <span className="brand-copy">
                 <strong>مركز صحتي الرياضي</strong>
                 <small>MY HEALTH</small>
