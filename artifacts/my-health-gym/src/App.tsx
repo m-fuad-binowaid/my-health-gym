@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   ArrowLeft,
   ArrowUpLeft,
+  AlertCircle,
   Check,
   Clock3,
   Dumbbell,
@@ -180,9 +181,24 @@ function phoneHref(phone: string) {
   return `tel:${phone}`;
 }
 
+function normalizeDigits(value: string) {
+  return value
+    .replace(/[٠-٩]/g, (digit) => String(digit.charCodeAt(0) - 0x660))
+    .replace(/[۰-۹]/g, (digit) => String(digit.charCodeAt(0) - 0x6f0))
+    .replace(/\D/g, '');
+}
+
 function App() {
   const [activeBranchId, setActiveBranchId] = useState(branches[0].id);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [membershipForm, setMembershipForm] = useState({
+    fullName: '',
+    nationalId: '',
+    age: '',
+    termsAccepted: false,
+  });
+  const [membershipAttempted, setMembershipAttempted] = useState(false);
   const activeBranch =
     branches.find((branch) => branch.id === activeBranchId) ?? branches[0];
 
@@ -194,9 +210,46 @@ function App() {
     return () => document.body.classList.remove('my-health-page');
   }, []);
 
+  useEffect(() => {
+    if (!selectedPlan) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setSelectedPlan(null);
+      }
+    };
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedPlan]);
+
   const scrollToSection = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
     setMobileMenuOpen(false);
+  };
+
+  const openMembershipModal = (plan: Plan) => {
+    setSelectedPlan(plan);
+    setMembershipAttempted(false);
+    setMembershipForm({
+      fullName: '',
+      nationalId: '',
+      age: '',
+      termsAccepted: false,
+    });
+  };
+
+  const closeMembershipModal = () => {
+    setSelectedPlan(null);
+    setMembershipAttempted(false);
   };
 
   const branchWhatsAppUrl = whatsappUrl(
@@ -204,11 +257,41 @@ function App() {
     `السلام عليكم، أرغب في الاستفسار عن الاشتراك في ${activeBranch.name}.`,
   );
 
-  const planWhatsAppUrl = (plan: Plan) =>
-    whatsappUrl(
-      activeBranch.phone,
-      `السلام عليكم، أرغب بالاشتراك في ${plan.name} بسعر ${plan.price} ريال لـ ${activeBranch.name}.`,
-    );
+  const isUnderage =
+    membershipForm.age.trim() !== '' &&
+    /^\d+$/.test(membershipForm.age) &&
+    Number(membershipForm.age) < 17;
+  const isMembershipFormValid =
+    membershipForm.fullName.trim().length >= 3 &&
+    /^\d{10}$/.test(membershipForm.nationalId) &&
+    /^\d+$/.test(membershipForm.age) &&
+    Number(membershipForm.age) >= 17 &&
+    membershipForm.termsAccepted;
+
+  const handleMembershipSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setMembershipAttempted(true);
+
+    if (!selectedPlan || !isMembershipFormValid) {
+      return;
+    }
+
+    const message = `السلام عليكم ورحمة الله،
+أرغب في تأكيد اشتراكي في مركز صحتي الرياضي:
+
+📋 تفاصيل الاشتراك:
+- الباقة المختارة: ${selectedPlan.name} - ${selectedPlan.price} ريال
+- الفرع: ${activeBranch.name}
+
+👤 بيانات المشترك:
+- الاسم: ${membershipForm.fullName.trim()}
+- رقم الهوية/الإقامة: ${membershipForm.nationalId}
+- العمر: ${membershipForm.age} سنة
+- الموافقة على الشروط: تمت الموافقة ✅`;
+
+    window.open(whatsappUrl(activeBranch.phone, message), '_blank', 'noopener,noreferrer');
+    closeMembershipModal();
+  };
 
   return (
     <div dir="rtl" className="site-shell">
@@ -492,15 +575,14 @@ function App() {
                       </li>
                     ))}
                   </ul>
-                  <a
+                  <button
+                    type="button"
                     className={`button plan-button ${plan.featured ? 'button-lime' : 'button-outline'}`}
-                    href={planWhatsAppUrl(plan)}
-                    target="_blank"
-                    rel="noreferrer"
+                    onClick={() => openMembershipModal(plan)}
                   >
                     اشترك الآن
                     <ArrowLeft size={17} />
-                  </a>
+                  </button>
                 </article>
               ))}
             </div>
@@ -707,6 +789,172 @@ function App() {
         <span className="whatsapp-pulse" />
         <MessageCircle size={25} />
       </a>
+
+      {selectedPlan && (
+        <div
+          className="membership-modal-backdrop"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              closeMembershipModal();
+            }
+          }}
+        >
+          <section
+            className="membership-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="membership-modal-title"
+            aria-describedby="membership-modal-description"
+          >
+            <div className="membership-modal-header">
+              <div>
+                <span className="modal-eyebrow">
+                  <span className="eyebrow-dot" />
+                  خطوة واحدة تفصلك عن البداية
+                </span>
+                <h2 id="membership-modal-title">إتمام طلب الاشتراك</h2>
+                <p id="membership-modal-description">
+                  {selectedPlan.name} — {selectedPlan.price} ريال
+                  <span> · {activeBranch.name}</span>
+                </p>
+              </div>
+              <button
+                type="button"
+                className="modal-close"
+                onClick={closeMembershipModal}
+                aria-label="إغلاق نافذة الاشتراك"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <form className="membership-form" onSubmit={handleMembershipSubmit} noValidate>
+              <div className="membership-form-grid">
+                <label className="membership-field field-full">
+                  <span>الاسم الثلاثي</span>
+                  <input
+                    type="text"
+                    value={membershipForm.fullName}
+                    onChange={(event) =>
+                      setMembershipForm((current) => ({
+                        ...current,
+                        fullName: event.target.value,
+                      }))
+                    }
+                    placeholder="اكتب اسمك الثلاثي"
+                    autoComplete="name"
+                    required
+                    aria-invalid={membershipAttempted && membershipForm.fullName.trim().length < 3}
+                  />
+                  {membershipAttempted && membershipForm.fullName.trim().length < 3 && (
+                    <small className="field-error">يرجى كتابة الاسم كاملاً.</small>
+                  )}
+                </label>
+
+                <label className="membership-field">
+                  <span>رقم الهوية الوطنية / الإقامة</span>
+                  <input
+                    type="text"
+                    value={membershipForm.nationalId}
+                    onChange={(event) =>
+                      setMembershipForm((current) => ({
+                        ...current,
+                        nationalId: normalizeDigits(event.target.value).slice(0, 10),
+                      }))
+                    }
+                    placeholder="10 أرقام"
+                    inputMode="numeric"
+                    autoComplete="off"
+                    maxLength={10}
+                    required
+                    aria-invalid={
+                      (membershipAttempted || membershipForm.nationalId.length > 0) &&
+                      !/^\d{10}$/.test(membershipForm.nationalId)
+                    }
+                  />
+                  {(membershipAttempted || membershipForm.nationalId.length > 0) &&
+                    !/^\d{10}$/.test(membershipForm.nationalId) && (
+                      <small className="field-error">أدخل 10 أرقام بالضبط.</small>
+                    )}
+                </label>
+
+                <label className="membership-field">
+                  <span>العمر</span>
+                  <input
+                    type="text"
+                    value={membershipForm.age}
+                    onChange={(event) =>
+                      setMembershipForm((current) => ({
+                        ...current,
+                        age: normalizeDigits(event.target.value).slice(0, 3),
+                      }))
+                    }
+                    placeholder="مثال: 25"
+                    inputMode="numeric"
+                    autoComplete="off"
+                    maxLength={3}
+                    required
+                    aria-invalid={membershipAttempted && !/^\d+$/.test(membershipForm.age)}
+                  />
+                  {membershipAttempted && !/^\d+$/.test(membershipForm.age) && (
+                    <small className="field-error">يرجى إدخال العمر.</small>
+                  )}
+                </label>
+              </div>
+
+              {isUnderage && (
+                <div className="age-rejection" role="alert">
+                  <AlertCircle size={20} />
+                  <p>
+                    نعتذر منك يا بطل 🌸.. شروط التسجيل في الصالات تتطلب أن يكون العمر 17 سنة
+                    فما فوق حرصاً على سلامتك. نتمنى أن نراك معنا مستقبلاً!
+                  </p>
+                </div>
+              )}
+
+              <label className="terms-field">
+                <input
+                  type="checkbox"
+                  checked={membershipForm.termsAccepted}
+                  onChange={(event) =>
+                    setMembershipForm((current) => ({
+                      ...current,
+                      termsAccepted: event.target.checked,
+                    }))
+                  }
+                  required
+                />
+                <span className="terms-checkmark">
+                  <Check size={13} />
+                </span>
+                <span>
+                  أوافق على الشروط والأحكام الخاصة بمركز صحتي الرياضي ولائحة المشتركين
+                </span>
+              </label>
+              {membershipAttempted && !membershipForm.termsAccepted && (
+                <small className="field-error terms-error">يجب الموافقة على الشروط للمتابعة.</small>
+              )}
+
+              <div className="membership-form-footer">
+                <button
+                  type="submit"
+                  className="button button-lime membership-submit"
+                  disabled={!isMembershipFormValid}
+                >
+                  تأكيد ومتابعة عبر واتساب 🚀
+                  <ArrowLeft size={18} />
+                </button>
+                <small>
+                  {isUnderage
+                    ? 'لا يمكن المتابعة قبل استيفاء شرط العمر.'
+                    : 'سيتم فتح محادثة واتساب مع الفرع المختار.'}
+                </small>
+              </div>
+            </form>
+          </section>
+        </div>
+      )}
     </div>
   );
 }
