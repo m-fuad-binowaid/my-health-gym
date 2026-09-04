@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "My Health Gym"
+description = "A responsive Arabic RTL website for My Health gyms in Riyadh, featuring branch information, summer membership offers, facilities, reviews, and direct WhatsApp contact."
+version = "1.0.0"
+id = "artifacts/my-health-gym"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18800
+
+[services.development]
+run = "pnpm --filter @workspace/my-health-gym run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/my-health-gym", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/my-health-gym/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18800"
+BASE_PATH = "/"
