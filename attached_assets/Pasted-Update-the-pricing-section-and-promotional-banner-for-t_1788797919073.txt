@@ -1,0 +1,35 @@
+Update the pricing section and promotional banner for the "MY HEALTH | نادي صحتي الرياضي" landing page to launch the official "Saudi National Day 96 (اليوم الوطني السعودي 96)" campaign:
+
+1. Visual Atmosphere & National Day Aesthetic:
+   - Palette: A sophisticated, muted Saudi Green (#0D472B to #09331F) combined with deep charcoal/obsidian accents and warm metallic gold/sand highlights (#D4AF37 / #E2C06A) to maintain luxury while keeping the gym's dark, high-performance identity.
+   - Accents: Subtle traditional Sadu or Saudi geometric patterns with ultra-low opacity (5-8%) embedded in the banner background.
+   - Typography: Bold Arabic typography (Tajawal / IBM Plex Sans Arabic) with dir="rtl".
+
+2. Hero Campaign Banner (عروض اليوم الوطني 96):
+   - Header: "عروض اليوم الوطني السعودي 96 - نادي صحتي الرياضي".
+   - Subtitle: "همة نحو اللياقة | باقات حصرية لفترة محدودة".
+   - Badge: "عرض خاص لفترة محدودة" with a soft green/gold glow.
+
+3. Branch-Switching Tabs (Crucial - Multiple Pricing Models):
+   - Add a clean toggle/tab switch at the top of the pricing cards:
+     * Tab 1: "فرع الشفاء (شارع الخليل بن أحمد)"
+     * Tab 2: "فرع المنصورة & فرع السعادة"
+
+4. Updated Pricing Data & Plans:
+   - When Tab 1 (فرع الشفاء) is active, display:
+     * 96 يوم: 596 ر.س
+     * 3 شهور + 96 يوم مجاناً: 796 ر.س (تمييزها بشارة: الأكثر طلباً)
+     * 6 شهور + 96 يوم مجاناً: 996 ر.س
+     * 9 شهور + 96 يوم مجاناً: 1096 ر.س
+     * Footer Note/Contact for this tab: فرع الشفاء (هاتف: 0534951220 / 0552631967 / 0534909220).
+
+   - When Tab 2 (فرع المنصورة والسعادة) is active, display:
+     * ثلاثة شهور: 596 ر.س
+     * سته شهور: 696 ر.س
+     * سنة + شهر: 996 ر.س (تمييزها بشارة: القيمة الأفضل)
+     * Alert Banner under cards: "العرض بدون تنازل وبدون إيقاف" in a subtle crimson/amber capsule.
+     * Footer Note/Contact for this tab: فرع المنصورة (0509284419) | فرع السعادة (0552632207).
+
+5. Action & WhatsApp Conversion:
+   - Each card must feature a direct CTA button: "احجز العرض الآن عبر واتساب".
+   - Clicking opens WhatsApp with a pre-filled message specifying the selected branch, plan duration, and price.
