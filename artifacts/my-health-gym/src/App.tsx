@@ -47,6 +47,18 @@ type Plan = {
   period: string;
   benefits: string[];
   featured?: boolean;
+  badge?: string;
+};
+
+type PricingTab = 'shifa' | 'mansouraSaadah';
+
+type CampaignOffer = {
+  label: string;
+  tabLabel: string;
+  whatsappPhone: string;
+  contacts: string;
+  plans: Plan[];
+  alert?: string;
 };
 
 const branches: Branch[] = [
@@ -79,30 +91,80 @@ const branches: Branch[] = [
   },
 ];
 
-const plans: Plan[] = [
-  {
-    name: 'باقة 3 شهور',
-    eyebrow: 'بداية قوية',
-    price: '599',
-    period: 'لمدة 3 أشهر',
-    benefits: ['دخول جميع المرافق', 'المسابح والملاعب', 'استشارة لياقة أولية'],
+const campaignOffers: Record<PricingTab, CampaignOffer> = {
+  shifa: {
+    label: 'فرع الشفاء (شارع الخليل بن أحمد)',
+    tabLabel: 'فرع الشفاء',
+    whatsappPhone: '0534951220',
+    contacts: 'فرع الشفاء (هاتف: 0534951220 / 0552631967 / 0534909220)',
+    plans: [
+      {
+        name: '96 يوم',
+        eyebrow: 'انطلاقة وطنية',
+        price: '596',
+        period: 'عرض اليوم الوطني',
+        benefits: ['دخول النادي', 'المرافق الرياضية', 'لفترة محدودة'],
+      },
+      {
+        name: '3 شهور + 96 يوم مجاناً',
+        eyebrow: 'الاختيار المفضل',
+        price: '796',
+        period: '3 شهور + هدية وطنية',
+        benefits: ['دخول النادي', 'المسابح والمرافق', '96 يوم مجاناً'],
+        featured: true,
+        badge: 'الأكثر طلباً',
+      },
+      {
+        name: '6 شهور + 96 يوم مجاناً',
+        eyebrow: 'التزام أقوى',
+        price: '996',
+        period: '6 شهور + هدية وطنية',
+        benefits: ['دخول النادي', 'المسابح والمرافق', '96 يوم مجاناً'],
+      },
+      {
+        name: '9 شهور + 96 يوم مجاناً',
+        eyebrow: 'خطوة طويلة المدى',
+        price: '1096',
+        period: '9 شهور + هدية وطنية',
+        benefits: ['دخول النادي', 'المسابح والمرافق', '96 يوم مجاناً'],
+      },
+    ],
   },
-  {
-    name: 'باقة 6 شهور',
-    eyebrow: 'التزام يصنع الفرق',
-    price: '799',
-    period: 'لمدة 6 أشهر',
-    benefits: ['دخول جميع المرافق', 'المسابح والملاعب', 'متابعة أسبوعية'],
+  mansouraSaadah: {
+    label: 'فرع المنصورة & فرع السعادة',
+    tabLabel: 'فرع المنصورة & فرع السعادة',
+    whatsappPhone: '0509284419',
+    contacts: 'فرع المنصورة (0509284419) | فرع السعادة (0552632207)',
+    alert: 'العرض بدون تنازل وبدون إيقاف',
+    plans: [
+      {
+        name: 'ثلاثة شهور',
+        eyebrow: 'بداية قوية',
+        price: '596',
+        period: 'عرض اليوم الوطني',
+        benefits: ['دخول النادي', 'المسابح والمرافق', 'لفترة محدودة'],
+      },
+      {
+        name: 'سته شهور',
+        eyebrow: 'التزام يصنع الفرق',
+        price: '696',
+        period: 'عرض اليوم الوطني',
+        benefits: ['دخول النادي', 'المسابح والمرافق', 'لفترة محدودة'],
+      },
+      {
+        name: 'سنة + شهر',
+        eyebrow: 'القيمة الأفضل',
+        price: '996',
+        period: '12 شهراً + شهر هدية',
+        benefits: ['وصول كامل طوال العام', 'المسابح والمرافق', 'شهر إضافي'],
+        featured: true,
+        badge: 'القيمة الأفضل',
+      },
+    ],
   },
-  {
-    name: 'باقة 12 شهر',
-    eyebrow: 'سنة كاملة',
-    price: '1,099',
-    period: 'لمدة 12 شهراً',
-    benefits: ['وصول كامل وغير محدود طوال العام', 'المسابح والملاعب', 'مميزات إضافية حصرية'],
-    featured: true,
-  },
-];
+};
+
+const pricingTabs: PricingTab[] = ['shifa', 'mansouraSaadah'];
 
 const facilities = [
   {
@@ -191,6 +253,7 @@ function normalizeDigits(value: string) {
 function App() {
   const [activeBranchId, setActiveBranchId] = useState(branches[0].id);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [pricingTab, setPricingTab] = useState<PricingTab>('shifa');
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [membershipForm, setMembershipForm] = useState({
     fullName: '',
@@ -201,6 +264,7 @@ function App() {
   const [membershipAttempted, setMembershipAttempted] = useState(false);
   const activeBranch =
     branches.find((branch) => branch.id === activeBranchId) ?? branches[0];
+  const activeCampaign = campaignOffers[pricingTab];
 
   useEffect(() => {
     document.documentElement.lang = 'ar';
@@ -256,6 +320,22 @@ function App() {
     activeBranch.phone,
     `السلام عليكم، أرغب في الاستفسار عن الاشتراك في ${activeBranch.name}.`,
   );
+
+  const openCampaignWhatsApp = (plan: Plan) => {
+    const message = `السلام عليكم،
+أرغب في حجز عرض اليوم الوطني السعودي 96 من نادي صحتي الرياضي:
+
+- الفرع/الفروع: ${activeCampaign.label}
+- العرض المختار: ${plan.name}
+- السعر: ${plan.price} ر.س
+- مدة العرض: ${plan.period}`;
+
+    window.open(
+      whatsappUrl(activeCampaign.whatsappPhone, message),
+      '_blank',
+      'noopener,noreferrer',
+    );
+  };
 
   const isUnderage =
     membershipForm.age.trim() !== '' &&
@@ -517,50 +597,81 @@ function App() {
 
         <section className="section offers-section" id="offers">
           <div className="container">
-            <div className="offer-banner">
-              <div className="offer-banner-icon">
+            <div className="campaign-banner">
+              <div className="campaign-banner-icon">
                 <Sparkles size={22} />
               </div>
-              <div>
-                <strong>عروض الصيف الحصرية</strong>
-                <span>تشمل دخول الفروع الثلاثة — بدون تنازل وبدون إيقاف</span>
+              <div className="campaign-banner-copy">
+                <span className="campaign-kicker">اليوم الوطني السعودي 96</span>
+                <strong>عروض اليوم الوطني السعودي 96 - نادي صحتي الرياضي</strong>
+                <span>همة نحو اللياقة | باقات حصرية لفترة محدودة</span>
               </div>
-              <div className="offer-branch">
-                <span>للفرع المختار</span>
-                <strong>{activeBranch.name}</strong>
+              <div className="campaign-banner-side">
+                <span className="campaign-badge">
+                  <Sparkles size={14} />
+                  عرض خاص لفترة محدودة
+                </span>
+                <small>{activeCampaign.label}</small>
               </div>
             </div>
 
             <div className="section-heading centered-heading">
-              <div className="eyebrow">عضويتك تبدأ من هنا</div>
+              <div className="eyebrow">عروض اليوم الوطني</div>
               <h2>
-                استثمر في
-                <span> أفضل نسخة منك.</span>
+                اختر عرضك،
+                <span> وابدأ بقوة.</span>
               </h2>
-              <p>اختر المدة التي تناسب هدفك، واترك الباقي علينا.</p>
+              <p>بدّل بين نماذج التسعير واختر الباقة التي تناسب هدفك.</p>
             </div>
 
-            <div className="plans-grid">
-              {plans.map((plan) => (
+            <div className="campaign-tabs" role="tablist" aria-label="نماذج عروض اليوم الوطني">
+              {pricingTabs.map((tab) => {
+                const offer = campaignOffers[tab];
+                const isActive = pricingTab === tab;
+
+                return (
+                  <button
+                    key={tab}
+                    type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    aria-controls="campaign-pricing-panel"
+                    className={`campaign-tab ${isActive ? 'active' : ''}`}
+                    onClick={() => setPricingTab(tab)}
+                  >
+                    <span>{offer.tabLabel}</span>
+                    <small>{tab === 'shifa' ? 'شارع الخليل بن أحمد' : 'نموذج موحّد للفرعين'}</small>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div
+              id="campaign-pricing-panel"
+              className={`plans-grid campaign-plans-grid campaign-plans-${pricingTab}`}
+              role="tabpanel"
+              aria-label={`باقات ${activeCampaign.label}`}
+            >
+              {activeCampaign.plans.map((plan, index) => (
                 <article
-                  key={plan.name}
-                  className={`plan-card ${plan.featured ? 'featured' : ''}`}
+                  key={`${pricingTab}-${plan.name}`}
+                  className={`plan-card campaign-plan-card ${plan.featured ? 'featured' : ''}`}
                 >
-                  {plan.featured && (
-                    <div className="popular-ribbon">
+                  {plan.badge && (
+                    <div className="campaign-plan-badge">
                       <Sparkles size={14} />
-                      الأكثر توفيراً
+                      {plan.badge}
                     </div>
                   )}
                   <div className="plan-topline">
                     <span>{plan.eyebrow}</span>
-                    <span className="plan-number">0{plans.indexOf(plan) + 1}</span>
+                    <span className="plan-number">0{index + 1}</span>
                   </div>
                   <h3>{plan.name}</h3>
                   <div className="price">
                     <strong>{plan.price}</strong>
                     <span className="price-meta">
-                      ريال
+                      ر.س
                       <small className="price-period">{plan.period}</small>
                     </span>
                   </div>
@@ -577,19 +688,40 @@ function App() {
                   </ul>
                   <button
                     type="button"
-                    className={`button plan-button ${plan.featured ? 'button-lime' : 'button-outline'}`}
-                    onClick={() => openMembershipModal(plan)}
+                    className="button button-lime plan-button campaign-plan-button"
+                    onClick={() => openCampaignWhatsApp(plan)}
                   >
-                    اشترك الآن
-                    <ArrowLeft size={17} />
+                    احجز العرض الآن عبر واتساب
+                    <MessageCircle size={17} />
                   </button>
                 </article>
               ))}
             </div>
-            <p className="offers-note">
-              <ShieldCheck size={15} />
-              العرض متاح لفترة محدودة — تواصل معنا للتأكد من التوفر
-            </p>
+
+            {activeCampaign.alert && (
+              <div className="campaign-alert" role="note">
+                <AlertCircle size={17} />
+                <span>{activeCampaign.alert}</span>
+              </div>
+            )}
+
+            <div className="campaign-contact">
+              <div>
+                <span>للتواصل والحجز</span>
+                <strong>{activeCampaign.label}</strong>
+              </div>
+              <div className="campaign-contact-actions">
+                <button
+                  type="button"
+                  className="button button-outline campaign-form-button"
+                  onClick={() => openMembershipModal(activeCampaign.plans[0])}
+                >
+                  تعبئة نموذج الاشتراك
+                  <ArrowLeft size={15} />
+                </button>
+                <p>{activeCampaign.contacts}</p>
+              </div>
+            </div>
           </div>
         </section>
 
