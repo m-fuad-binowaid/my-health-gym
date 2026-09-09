@@ -1,0 +1,1 @@
+- [GitHub push authentication](github-push-auth.md) — API integration access does not automatically authenticate shell Git pushes.
