@@ -29,12 +29,18 @@ import poolImage from "@assets/IMG_8996_1788483814732.jpeg";
 import weightsImage from "@assets/IMG_8997_1788483814732.jpeg";
 import groupImage from "@assets/IMG_8998_1788483814732.jpeg";
 import logoImage from "@assets/my-health-logo.png";
+import {
+  loadSiteConfig,
+  SITE_CONFIG_UPDATED_EVENT,
+  type SiteConfig,
+} from "./siteConfig";
 
 type Branch = {
   id: string;
   name: string;
   englishName: string;
   phone: string;
+  whatsappPhone: string;
   hours: string;
   friday: string;
   mapUrl: string;
@@ -75,12 +81,13 @@ type CampaignOffer = {
   alert?: string;
 };
 
-const branches: Branch[] = [
+const defaultBranches: Branch[] = [
   {
     id: "mansoura",
     name: "فرع المنصورة",
     englishName: "Al Mansoura",
     phone: "0536903636",
+    whatsappPhone: "0509284419",
     hours: "05:00 صباحاً – 03:00 صباحاً",
     friday: "الجمعة: 01:00 ظهراً – 12:00 منتصف الليل",
     mapUrl:
@@ -91,6 +98,7 @@ const branches: Branch[] = [
     name: "فرع السعادة",
     englishName: "Al Saadah",
     phone: "0552632207",
+    whatsappPhone: "0552632207",
     hours: "05:30 صباحاً – 03:00 صباحاً",
     friday: "الجمعة: 02:00 ظهراً – 12:00 منتصف الليل",
     mapUrl:
@@ -101,6 +109,7 @@ const branches: Branch[] = [
     name: "فرع الشفا",
     englishName: "Al Shifa",
     phone: "0552631967",
+    whatsappPhone: "0534951220",
     hours: "06:00 صباحاً – 02:00 صباحاً",
     friday: "طوال أيام الأسبوع",
     mapUrl:
@@ -108,7 +117,7 @@ const branches: Branch[] = [
   },
 ];
 
-const campaignOffers: Record<PricingTab, CampaignOffer> = {
+const defaultCampaignOffers: Record<PricingTab, CampaignOffer> = {
   shifa: {
     label: "فرع الشفاء (شارع الخليل بن أحمد)",
     tabLabel: "فرع الشفاء",
@@ -295,6 +304,11 @@ function normalizeDigits(value: string) {
 }
 
 function App() {
+  const [siteConfig, setSiteConfig] = useState<SiteConfig>(() =>
+    loadSiteConfig(),
+  );
+  const branches = siteConfig.branches;
+  const campaignOffers = siteConfig.campaigns;
   const [activeBranchId, setActiveBranchId] = useState(branches[0].id);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [pricingTab, setPricingTab] = useState<PricingTab>("shifa");
@@ -316,12 +330,27 @@ function App() {
   const activeBranch =
     branches.find((branch) => branch.id === activeBranchId) ?? branches[0];
   const activeCampaign = campaignOffers[pricingTab];
+  const campaignContactText =
+    pricingTab === "shifa"
+      ? `فرع الشفاء (واتساب: ${branches.find((branch) => branch.id === "shifa")?.whatsappPhone ?? activeCampaign.whatsappPhone})`
+      : `فرع المنصورة (${branches.find((branch) => branch.id === "mansoura")?.whatsappPhone ?? "—"}) | فرع السعادة (${branches.find((branch) => branch.id === "saadah")?.whatsappPhone ?? "—"})`;
   const featuredCampaignPlan =
     activeCampaign.plans.find((plan) => plan.featured) ??
     activeCampaign.plans[0];
   const selectedPlan = bookingContext?.plan ?? null;
   const selectedBookingBranch = bookingContext?.branch ?? activeBranch;
   const bookingBranchOptions = bookingContext?.branchOptions ?? [];
+
+  useEffect(() => {
+    const refreshConfig = () => setSiteConfig(loadSiteConfig());
+    window.addEventListener("storage", refreshConfig);
+    window.addEventListener(SITE_CONFIG_UPDATED_EVENT, refreshConfig);
+
+    return () => {
+      window.removeEventListener("storage", refreshConfig);
+      window.removeEventListener(SITE_CONFIG_UPDATED_EVENT, refreshConfig);
+    };
+  }, []);
 
   useEffect(() => {
     document.documentElement.lang = "ar";
@@ -408,7 +437,7 @@ function App() {
   };
 
   const branchWhatsAppUrl = whatsappUrl(
-    activeBranch.phone,
+    activeBranch.whatsappPhone,
     `السلام عليكم، أرغب في الاستفسار عن الاشتراك في ${activeBranch.name}.`,
   );
 
@@ -422,7 +451,7 @@ function App() {
       return [
         {
           branch: shifaBranch,
-          whatsappPhone: campaignOffers.shifa.whatsappPhone,
+          whatsappPhone: shifaBranch.whatsappPhone,
         },
       ];
     }
@@ -435,11 +464,11 @@ function App() {
     return [
       {
         branch: mansouraBranch,
-        whatsappPhone: campaignOffers.mansouraSaadah.whatsappPhone,
+        whatsappPhone: mansouraBranch.whatsappPhone,
       },
       {
         branch: saadahBranch,
-        whatsappPhone: saadahBranch.phone,
+        whatsappPhone: saadahBranch.whatsappPhone,
       },
     ];
   };
@@ -607,13 +636,10 @@ function App() {
                 الوجهة الرياضية الأولى في الرياض
               </div>
               <h1>
-                طريقك لحياة صحية
-                <span>وليـاقة متكاملة.</span>
+                {siteConfig.hero.headline}
+                <span>{siteConfig.hero.accent}</span>
               </h1>
-              <p className="hero-description">
-                كل ما تحتاجه لتبدأ وتستمر في رحلتك. تجهيزات احترافية، مرافق
-                متكاملة، ومدربون معتمدون يساندونك في كل خطوة.
-              </p>
+              <p className="hero-description">{siteConfig.hero.subheadline}</p>
               <div className="hero-actions">
                 <button
                   className="button button-lime button-large"
@@ -768,33 +794,37 @@ function App() {
 
         <section className="section offers-section" id="offers">
           <div className="container">
-            <div className="campaign-banner">
-              <div className="campaign-banner-icon">
-                <Sparkles size={22} />
+            {siteConfig.exclusiveBanner.enabled && (
+              <div className="campaign-banner">
+                <div className="campaign-banner-icon">
+                  <Sparkles size={22} />
+                </div>
+                <div className="campaign-banner-copy">
+                  <span className="campaign-kicker">
+                    اليوم الوطني السعودي 96
+                  </span>
+                  <strong>
+                    عروض اليوم الوطني السعودي 96 - نادي صحتي الرياضي
+                  </strong>
+                  <span>{siteConfig.exclusiveBanner.note}</span>
+                </div>
+                <div className="campaign-banner-side">
+                  <span className="campaign-badge">
+                    <Sparkles size={14} />
+                    عرض خاص لفترة محدودة
+                  </span>
+                  <small>{activeCampaign.label}</small>
+                  <button
+                    type="button"
+                    className="campaign-banner-button"
+                    onClick={() => openCampaignModal(featuredCampaignPlan)}
+                  >
+                    احجز العرض الآن
+                    <ArrowLeft size={15} />
+                  </button>
+                </div>
               </div>
-              <div className="campaign-banner-copy">
-                <span className="campaign-kicker">اليوم الوطني السعودي 96</span>
-                <strong>
-                  عروض اليوم الوطني السعودي 96 - نادي صحتي الرياضي
-                </strong>
-                <span>همة نحو اللياقة | باقات حصرية لفترة محدودة</span>
-              </div>
-              <div className="campaign-banner-side">
-                <span className="campaign-badge">
-                  <Sparkles size={14} />
-                  عرض خاص لفترة محدودة
-                </span>
-                <small>{activeCampaign.label}</small>
-                <button
-                  type="button"
-                  className="campaign-banner-button"
-                  onClick={() => openCampaignModal(featuredCampaignPlan)}
-                >
-                  احجز العرض الآن
-                  <ArrowLeft size={15} />
-                </button>
-              </div>
-            </div>
+            )}
 
             <div className="section-heading centered-heading">
               <div className="eyebrow">عروض اليوم الوطني</div>
@@ -915,7 +945,7 @@ function App() {
                   تعبئة نموذج الاشتراك
                   <ArrowLeft size={15} />
                 </button>
-                <p>{activeCampaign.contacts}</p>
+                <p>{campaignContactText}</p>
               </div>
             </div>
           </div>
