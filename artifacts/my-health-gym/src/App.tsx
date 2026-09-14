@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowUpLeft,
@@ -34,6 +34,8 @@ import {
   SITE_CONFIG_UPDATED_EVENT,
   type SiteConfig,
 } from "./siteConfig";
+import { useSupabaseItems } from "./hooks/useSupabaseItems";
+import { isSupabaseConfigured } from "./lib/supabase";
 
 type Branch = {
   id: string;
@@ -54,6 +56,7 @@ type Plan = {
   benefits: string[];
   featured?: boolean;
   badge?: string;
+  image?: string;
 };
 
 type PricingTab = "shifa" | "mansouraSaadah";
@@ -334,9 +337,48 @@ function App() {
     pricingTab === "shifa"
       ? `فرع الشفاء (واتساب: ${branches.find((branch) => branch.id === "shifa")?.whatsappPhone ?? activeCampaign.whatsappPhone})`
       : `فرع المنصورة (${branches.find((branch) => branch.id === "mansoura")?.whatsappPhone ?? "—"}) | فرع السعادة (${branches.find((branch) => branch.id === "saadah")?.whatsappPhone ?? "—"})`;
+
+  // Fetch dynamic packages from Supabase
+  const { items: supabaseItems, loading: itemsLoading, isLive: isSupabaseLive } = useSupabaseItems();
+
+  const dynamicPlans: Plan[] = useMemo(() => {
+    if (!isSupabaseLive || supabaseItems.length === 0) {
+      return activeCampaign.plans;
+    }
+
+    const matchingItems = supabaseItems.filter(
+      (item) =>
+        item.category.toLowerCase() === pricingTab.toLowerCase() ||
+        item.category.toLowerCase() === "general" ||
+        item.category.toLowerCase() === "all"
+    );
+
+    if (matchingItems.length === 0) {
+      return activeCampaign.plans;
+    }
+
+    return matchingItems.map((item, index) => {
+      const fallbackPlan = activeCampaign.plans[index] || activeCampaign.plans[0];
+      return {
+        name: item.title,
+        eyebrow: fallbackPlan?.eyebrow || "باقة معتمدة",
+        price: String(item.price),
+        period: fallbackPlan?.period || "عرض خاص",
+        benefits: fallbackPlan?.benefits || [
+          "دخول النادي والمرافق",
+          "المسابح الأولمبية",
+          "متابعة مستمرة مع المدربين",
+        ],
+        featured: fallbackPlan?.featured ?? (index === 1),
+        badge: fallbackPlan?.badge ?? (index === 1 ? "الأكثر طلباً" : undefined),
+        image: item.image || undefined,
+      };
+    });
+  }, [isSupabaseLive, supabaseItems, pricingTab, activeCampaign.plans]);
+
   const featuredCampaignPlan =
-    activeCampaign.plans.find((plan) => plan.featured) ??
-    activeCampaign.plans[0];
+    dynamicPlans.find((plan) => plan.featured) ??
+    dynamicPlans[0];
   const selectedPlan = bookingContext?.plan ?? null;
   const selectedBookingBranch = bookingContext?.branch ?? activeBranch;
   const bookingBranchOptions = bookingContext?.branchOptions ?? [];
@@ -833,6 +875,12 @@ function App() {
                 <span> وابدأ بقوة.</span>
               </h2>
               <p>بدّل بين نماذج التسعير واختر الباقة التي تناسب هدفك.</p>
+              {isSupabaseLive && (
+                <div className="live-db-pill">
+                  <span className="live-db-dot" />
+                  مزامنة سحابية مباشرة عبر Supabase ⚡
+                </div>
+              )}
             </div>
 
             <div
@@ -878,50 +926,58 @@ function App() {
               role="tabpanel"
               aria-label={`باقات ${activeCampaign.label}`}
             >
-              {activeCampaign.plans.map((plan, index) => (
-                <article
-                  key={`${pricingTab}-${plan.name}`}
-                  className={`plan-card campaign-plan-card ${plan.featured ? "featured" : ""}`}
-                >
-                  {plan.badge && (
-                    <div className="campaign-plan-badge">
-                      <Sparkles size={14} />
-                      {plan.badge}
-                    </div>
-                  )}
-                  <div className="plan-topline">
-                    <span>{plan.eyebrow}</span>
-                    <span className="plan-number">0{index + 1}</span>
-                  </div>
-                  <h3>{plan.name}</h3>
-                  <div className="price">
-                    <strong>{plan.price}</strong>
-                    <span className="price-meta">
-                      ر.س
-                      <small className="price-period">{plan.period}</small>
-                    </span>
-                  </div>
-                  <div className="plan-separator" />
-                  <ul>
-                    {plan.benefits.map((benefit) => (
-                      <li key={benefit}>
-                        <span>
-                          <Check size={14} />
-                        </span>
-                        {benefit}
-                      </li>
-                    ))}
-                  </ul>
-                  <button
-                    type="button"
-                    className="button button-lime plan-button campaign-plan-button"
-                    onClick={() => openCampaignModal(plan)}
+              {itemsLoading && isSupabaseConfigured() ? (
+                <>
+                  <div className="skeleton-card" />
+                  <div className="skeleton-card" />
+                  <div className="skeleton-card" />
+                </>
+              ) : (
+                dynamicPlans.map((plan, index) => (
+                  <article
+                    key={`${pricingTab}-${plan.name}-${index}`}
+                    className={`plan-card campaign-plan-card ${plan.featured ? "featured" : ""}`}
                   >
-                    احجز العرض الآن عبر واتساب
-                    <MessageCircle size={17} />
-                  </button>
-                </article>
-              ))}
+                    {plan.badge && (
+                      <div className="campaign-plan-badge">
+                        <Sparkles size={14} />
+                        {plan.badge}
+                      </div>
+                    )}
+                    <div className="plan-topline">
+                      <span>{plan.eyebrow}</span>
+                      <span className="plan-number">0{index + 1}</span>
+                    </div>
+                    <h3>{plan.name}</h3>
+                    <div className="price">
+                      <strong>{plan.price}</strong>
+                      <span className="price-meta">
+                        ر.س
+                        <small className="price-period">{plan.period}</small>
+                      </span>
+                    </div>
+                    <div className="plan-separator" />
+                    <ul>
+                      {plan.benefits.map((benefit) => (
+                        <li key={benefit}>
+                          <span>
+                            <Check size={14} />
+                          </span>
+                          {benefit}
+                        </li>
+                      ))}
+                    </ul>
+                    <button
+                      type="button"
+                      className="button button-lime plan-button campaign-plan-button"
+                      onClick={() => openCampaignModal(plan)}
+                    >
+                      احجز العرض الآن عبر واتساب
+                      <MessageCircle size={17} />
+                    </button>
+                  </article>
+                ))
+              )}
             </div>
 
             {activeCampaign.alert && (
