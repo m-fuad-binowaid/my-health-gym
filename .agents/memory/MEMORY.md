@@ -1,1 +1,2 @@
 - [GitHub push authentication](github-push-auth.md) — API integration access does not automatically authenticate shell Git pushes.
+- [Artifact workflow package manager](artifact-workflow-package-manager.md) — managed artifact workflows may need automatic pnpm version switching disabled when the installed Nix pnpm differs.
