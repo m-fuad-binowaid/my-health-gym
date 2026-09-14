@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowUpLeft,
@@ -19,16 +19,16 @@ import {
   Users,
   Waves,
   X,
-} from 'lucide-react';
+} from "lucide-react";
 
-import cardioImage from '@assets/IMG_8991_1788483814732.jpeg';
-import turfImage from '@assets/IMG_8992_1788483814732.jpeg';
-import treadmillsImage from '@assets/IMG_8994_1788483814732.jpeg';
-import exteriorImage from '@assets/IMG_8995_1788484733609.jpeg';
-import poolImage from '@assets/IMG_8996_1788483814732.jpeg';
-import weightsImage from '@assets/IMG_8997_1788483814732.jpeg';
-import groupImage from '@assets/IMG_8998_1788483814732.jpeg';
-import logoImage from '@assets/my-health-logo.png';
+import cardioImage from "@assets/IMG_8991_1788483814732.jpeg";
+import turfImage from "@assets/IMG_8992_1788483814732.jpeg";
+import treadmillsImage from "@assets/IMG_8994_1788483814732.jpeg";
+import exteriorImage from "@assets/IMG_8995_1788484733609.jpeg";
+import poolImage from "@assets/IMG_8996_1788483814732.jpeg";
+import weightsImage from "@assets/IMG_8997_1788483814732.jpeg";
+import groupImage from "@assets/IMG_8998_1788483814732.jpeg";
+import logoImage from "@assets/my-health-logo.png";
 
 type Branch = {
   id: string;
@@ -50,7 +50,21 @@ type Plan = {
   badge?: string;
 };
 
-type PricingTab = 'shifa' | 'mansouraSaadah';
+type PricingTab = "shifa" | "mansouraSaadah";
+
+type PaymentMethod = "bankTransfer" | "installments" | "payAtGym";
+
+type BookingBranchOption = {
+  branch: Branch;
+  whatsappPhone: string;
+};
+
+type BookingContext = {
+  plan: Plan;
+  branch: Branch;
+  whatsappPhone: string;
+  branchOptions: BookingBranchOption[];
+};
 
 type CampaignOffer = {
   label: string;
@@ -63,179 +77,209 @@ type CampaignOffer = {
 
 const branches: Branch[] = [
   {
-    id: 'mansoura',
-    name: 'فرع المنصورة',
-    englishName: 'Al Mansoura',
-    phone: '0536903636',
-    hours: '05:00 صباحاً – 03:00 صباحاً',
-    friday: 'الجمعة: 01:00 ظهراً – 12:00 منتصف الليل',
-    mapUrl: 'https://www.google.com/maps/search/?api=1&query=My+Health+Gym+Al+Mansoura+Riyadh',
+    id: "mansoura",
+    name: "فرع المنصورة",
+    englishName: "Al Mansoura",
+    phone: "0536903636",
+    hours: "05:00 صباحاً – 03:00 صباحاً",
+    friday: "الجمعة: 01:00 ظهراً – 12:00 منتصف الليل",
+    mapUrl:
+      "https://www.google.com/maps/search/?api=1&query=My+Health+Gym+Al+Mansoura+Riyadh",
   },
   {
-    id: 'saadah',
-    name: 'فرع السعادة',
-    englishName: 'Al Saadah',
-    phone: '0552632207',
-    hours: '05:30 صباحاً – 03:00 صباحاً',
-    friday: 'الجمعة: 02:00 ظهراً – 12:00 منتصف الليل',
-    mapUrl: 'https://www.google.com/maps/search/?api=1&query=My+Health+Gym+Al+Saadah+Riyadh',
+    id: "saadah",
+    name: "فرع السعادة",
+    englishName: "Al Saadah",
+    phone: "0552632207",
+    hours: "05:30 صباحاً – 03:00 صباحاً",
+    friday: "الجمعة: 02:00 ظهراً – 12:00 منتصف الليل",
+    mapUrl:
+      "https://www.google.com/maps/search/?api=1&query=My+Health+Gym+Al+Saadah+Riyadh",
   },
   {
-    id: 'shifa',
-    name: 'فرع الشفا',
-    englishName: 'Al Shifa',
-    phone: '0552631967',
-    hours: '06:00 صباحاً – 02:00 صباحاً',
-    friday: 'طوال أيام الأسبوع',
-    mapUrl: 'https://www.google.com/maps/search/?api=1&query=My+Health+Gym+Al+Shifa+Riyadh',
+    id: "shifa",
+    name: "فرع الشفا",
+    englishName: "Al Shifa",
+    phone: "0552631967",
+    hours: "06:00 صباحاً – 02:00 صباحاً",
+    friday: "طوال أيام الأسبوع",
+    mapUrl:
+      "https://www.google.com/maps/search/?api=1&query=My+Health+Gym+Al+Shifa+Riyadh",
   },
 ];
 
 const campaignOffers: Record<PricingTab, CampaignOffer> = {
   shifa: {
-    label: 'فرع الشفاء (شارع الخليل بن أحمد)',
-    tabLabel: 'فرع الشفاء',
-    whatsappPhone: '0534951220',
-    contacts: 'فرع الشفاء (هاتف: 0534951220 / 0552631967 / 0534909220)',
+    label: "فرع الشفاء (شارع الخليل بن أحمد)",
+    tabLabel: "فرع الشفاء",
+    whatsappPhone: "0534951220",
+    contacts: "فرع الشفاء (هاتف: 0534951220 / 0552631967 / 0534909220)",
     plans: [
       {
-        name: '96 يوم',
-        eyebrow: 'انطلاقة وطنية',
-        price: '596',
-        period: 'عرض اليوم الوطني',
-        benefits: ['دخول النادي', 'المرافق الرياضية', 'لفترة محدودة'],
+        name: "96 يوم",
+        eyebrow: "انطلاقة وطنية",
+        price: "596",
+        period: "عرض اليوم الوطني",
+        benefits: ["دخول النادي", "المرافق الرياضية", "لفترة محدودة"],
       },
       {
-        name: '3 شهور + 96 يوم مجاناً',
-        eyebrow: 'الاختيار المفضل',
-        price: '796',
-        period: '3 شهور + هدية وطنية',
-        benefits: ['دخول النادي', 'المسابح والمرافق', '96 يوم مجاناً'],
+        name: "3 شهور + 96 يوم مجاناً",
+        eyebrow: "الاختيار المفضل",
+        price: "796",
+        period: "3 شهور + هدية وطنية",
+        benefits: ["دخول النادي", "المسابح والمرافق", "96 يوم مجاناً"],
         featured: true,
-        badge: 'الأكثر طلباً',
+        badge: "الأكثر طلباً",
       },
       {
-        name: '6 شهور + 96 يوم مجاناً',
-        eyebrow: 'التزام أقوى',
-        price: '996',
-        period: '6 شهور + هدية وطنية',
-        benefits: ['دخول النادي', 'المسابح والمرافق', '96 يوم مجاناً'],
+        name: "6 شهور + 96 يوم مجاناً",
+        eyebrow: "التزام أقوى",
+        price: "996",
+        period: "6 شهور + هدية وطنية",
+        benefits: ["دخول النادي", "المسابح والمرافق", "96 يوم مجاناً"],
       },
       {
-        name: '9 شهور + 96 يوم مجاناً',
-        eyebrow: 'خطوة طويلة المدى',
-        price: '1096',
-        period: '9 شهور + هدية وطنية',
-        benefits: ['دخول النادي', 'المسابح والمرافق', '96 يوم مجاناً'],
+        name: "9 شهور + 96 يوم مجاناً",
+        eyebrow: "خطوة طويلة المدى",
+        price: "1096",
+        period: "9 شهور + هدية وطنية",
+        benefits: ["دخول النادي", "المسابح والمرافق", "96 يوم مجاناً"],
       },
     ],
   },
   mansouraSaadah: {
-    label: 'فرع المنصورة & فرع السعادة',
-    tabLabel: 'فرع المنصورة & فرع السعادة',
-    whatsappPhone: '0509284419',
-    contacts: 'فرع المنصورة (0509284419) | فرع السعادة (0552632207)',
-    alert: 'العرض بدون تنازل وبدون إيقاف',
+    label: "فرع المنصورة & فرع السعادة",
+    tabLabel: "فرع المنصورة & فرع السعادة",
+    whatsappPhone: "0509284419",
+    contacts: "فرع المنصورة (0509284419) | فرع السعادة (0552632207)",
+    alert: "العرض بدون تنازل وبدون إيقاف",
     plans: [
       {
-        name: 'ثلاثة شهور',
-        eyebrow: 'بداية قوية',
-        price: '596',
-        period: 'عرض اليوم الوطني',
-        benefits: ['دخول النادي', 'المسابح والمرافق', 'لفترة محدودة'],
+        name: "ثلاثة شهور",
+        eyebrow: "بداية قوية",
+        price: "596",
+        period: "عرض اليوم الوطني",
+        benefits: ["دخول النادي", "المسابح والمرافق", "لفترة محدودة"],
       },
       {
-        name: 'سته شهور',
-        eyebrow: 'التزام يصنع الفرق',
-        price: '696',
-        period: 'عرض اليوم الوطني',
-        benefits: ['دخول النادي', 'المسابح والمرافق', 'لفترة محدودة'],
+        name: "سته شهور",
+        eyebrow: "التزام يصنع الفرق",
+        price: "696",
+        period: "عرض اليوم الوطني",
+        benefits: ["دخول النادي", "المسابح والمرافق", "لفترة محدودة"],
       },
       {
-        name: 'سنة + شهر',
-        eyebrow: 'القيمة الأفضل',
-        price: '996',
-        period: '12 شهراً + شهر هدية',
-        benefits: ['وصول كامل طوال العام', 'المسابح والمرافق', 'شهر إضافي'],
+        name: "سنة + شهر",
+        eyebrow: "القيمة الأفضل",
+        price: "996",
+        period: "12 شهراً + شهر هدية",
+        benefits: ["وصول كامل طوال العام", "المسابح والمرافق", "شهر إضافي"],
         featured: true,
-        badge: 'القيمة الأفضل',
+        badge: "القيمة الأفضل",
       },
     ],
   },
 };
 
-const pricingTabs: PricingTab[] = ['shifa', 'mansouraSaadah'];
+const pricingTabs: PricingTab[] = ["shifa", "mansouraSaadah"];
+
+const paymentMethods: {
+  id: PaymentMethod;
+  label: string;
+  shortLabel: string;
+  description: string;
+}[] = [
+  {
+    id: "bankTransfer",
+    label: "تحويل بنكي",
+    shortLabel: "تحويل بنكي",
+    description: "سيتم تزويدك بالآيبان ورفع الإيصال عبر الواتساب.",
+  },
+  {
+    id: "installments",
+    label: "تقسيط شهري (تابي / تمارا)",
+    shortLabel: "تقسيط تابي وتمارا",
+    description: "تُطبق شروط وأحكام مزودي خدمة التقسيط.",
+  },
+  {
+    id: "payAtGym",
+    label: "دفع عند النادي مباشرة",
+    shortLabel: "دفع في مقر النادي",
+    description:
+      "الدفع عبر الشبكة أو نقداً في استقبال الفرع عند زيارتك الأولى.",
+  },
+];
 
 const facilities = [
   {
-    title: 'كمال الأجسام والأوزان الحرة',
-    description: 'أجهزة حديد متطورة ودنابل تناسب جميع المستويات.',
+    title: "كمال الأجسام والأوزان الحرة",
+    description: "أجهزة حديد متطورة ودنابل تناسب جميع المستويات.",
     image: weightsImage,
     icon: Dumbbell,
-    size: 'large',
+    size: "large",
   },
   {
-    title: 'الكارديو واللياقة',
-    description: 'مسارات ركض ودراجات مزودة بشاشات تفاعلية.',
+    title: "الكارديو واللياقة",
+    description: "مسارات ركض ودراجات مزودة بشاشات تفاعلية.",
     image: cardioImage,
     icon: Trophy,
-    size: 'standard',
+    size: "standard",
   },
   {
-    title: 'المسبح الأولمبي المغلق',
-    description: 'حوض دافئ ونظيف للتدريب والاسترخاء.',
+    title: "المسبح الأولمبي المغلق",
+    description: "حوض دافئ ونظيف للتدريب والاسترخاء.",
     image: poolImage,
     icon: Waves,
-    size: 'standard',
+    size: "standard",
   },
   {
-    title: 'الملاعب الخارجية',
-    description: 'مساحات عشب صناعي لممارسة رياضتك المفضلة.',
+    title: "الملاعب الخارجية",
+    description: "مساحات عشب صناعي لممارسة رياضتك المفضلة.",
     image: turfImage,
     icon: Sparkles,
-    size: 'standard',
+    size: "standard",
   },
   {
-    title: 'التمارين الجماعية وCrossFit',
-    description: 'حصص يومية لرفع اللياقة والمرونة.',
+    title: "التمارين الجماعية وCrossFit",
+    description: "حصص يومية لرفع اللياقة والمرونة.",
     image: groupImage,
     icon: Users,
-    size: 'wide',
+    size: "wide",
   },
 ];
 
 const reviews = [
   {
-    name: 'عناية خان',
-    latinName: 'Inayath Khan',
-    role: 'مراجع Google',
+    name: "عناية خان",
+    latinName: "Inayath Khan",
+    role: "مراجع Google",
     quote:
-      'من أفضل النوادي الرياضية وأنسبها سعراً لكل شخص يبحث عن بناء جسم مثالي. تتوفر فيه صالة ومسبح متكاملان ومميزان.',
+      "من أفضل النوادي الرياضية وأنسبها سعراً لكل شخص يبحث عن بناء جسم مثالي. تتوفر فيه صالة ومسبح متكاملان ومميزان.",
   },
   {
-    name: 'أبو ضياء',
-    latinName: 'مرشد محلي',
-    role: 'مراجع Google',
-    quote: 'مساحات واسعة ومريحة جداً للتمرين مع وجود مسبح نظيف وممتاز.',
+    name: "أبو ضياء",
+    latinName: "مرشد محلي",
+    role: "مراجع Google",
+    quote: "مساحات واسعة ومريحة جداً للتمرين مع وجود مسبح نظيف وممتاز.",
   },
   {
-    name: 'آبين إلياس',
-    latinName: 'Abin Alias',
-    role: 'مراجع Google',
+    name: "آبين إلياس",
+    latinName: "Abin Alias",
+    role: "مراجع Google",
     quote:
-      'النادي رائع جداً، جميع الأجهزة والمعدات متوفرة والمسبح جميل. المكان نظيف وفريق العمل متعاون وداعم دائماً.',
+      "النادي رائع جداً، جميع الأجهزة والمعدات متوفرة والمسبح جميل. المكان نظيف وفريق العمل متعاون وداعم دائماً.",
   },
 ];
 
 const navItems = [
-  { label: 'الفروع', id: 'branches' },
-  { label: 'العروض', id: 'offers' },
-  { label: 'المرافق', id: 'facilities' },
-  { label: 'آراء المشتركين', id: 'reviews' },
+  { label: "الفروع", id: "branches" },
+  { label: "العروض", id: "offers" },
+  { label: "المرافق", id: "facilities" },
+  { label: "آراء المشتركين", id: "reviews" },
 ];
 
 function whatsappUrl(phone: string, message: string) {
-  const internationalPhone = `966${phone.replace(/^0/, '')}`;
+  const internationalPhone = `966${phone.replace(/^0/, "")}`;
   return `https://wa.me/${internationalPhone}?text=${encodeURIComponent(message)}`;
 }
 
@@ -247,31 +291,44 @@ function normalizeDigits(value: string) {
   return value
     .replace(/[٠-٩]/g, (digit) => String(digit.charCodeAt(0) - 0x660))
     .replace(/[۰-۹]/g, (digit) => String(digit.charCodeAt(0) - 0x6f0))
-    .replace(/\D/g, '');
+    .replace(/\D/g, "");
 }
 
 function App() {
   const [activeBranchId, setActiveBranchId] = useState(branches[0].id);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [pricingTab, setPricingTab] = useState<PricingTab>('shifa');
-  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [pricingTab, setPricingTab] = useState<PricingTab>("shifa");
+  const [bookingContext, setBookingContext] = useState<BookingContext | null>(
+    null,
+  );
   const [membershipForm, setMembershipForm] = useState({
-    fullName: '',
-    nationalId: '',
-    age: '',
+    fullName: "",
+    mobile: "",
+    nationalId: "",
+    age: "",
+    paymentMethod: "" as PaymentMethod | "",
     termsAccepted: false,
   });
   const [membershipAttempted, setMembershipAttempted] = useState(false);
+  const modalRef = useRef<HTMLElement>(null);
+  const modalCloseRef = useRef<HTMLButtonElement>(null);
+  const modalTriggerRef = useRef<HTMLElement | null>(null);
   const activeBranch =
     branches.find((branch) => branch.id === activeBranchId) ?? branches[0];
   const activeCampaign = campaignOffers[pricingTab];
+  const featuredCampaignPlan =
+    activeCampaign.plans.find((plan) => plan.featured) ??
+    activeCampaign.plans[0];
+  const selectedPlan = bookingContext?.plan ?? null;
+  const selectedBookingBranch = bookingContext?.branch ?? activeBranch;
+  const bookingBranchOptions = bookingContext?.branchOptions ?? [];
 
   useEffect(() => {
-    document.documentElement.lang = 'ar';
-    document.documentElement.dir = 'rtl';
-    document.body.classList.add('my-health-page');
+    document.documentElement.lang = "ar";
+    document.documentElement.dir = "rtl";
+    document.body.classList.add("my-health-page");
 
-    return () => document.body.classList.remove('my-health-page');
+    return () => document.body.classList.remove("my-health-page");
   }, []);
 
   useEffect(() => {
@@ -280,39 +337,73 @@ function App() {
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setSelectedPlan(null);
+      if (event.key === "Escape") {
+        setBookingContext(null);
+        return;
+      }
+
+      if (event.key === "Tab" && modalRef.current) {
+        const focusableElements = Array.from(
+          modalRef.current.querySelectorAll<HTMLElement>(
+            'button:not([disabled]), input:not([disabled]), [href], [tabindex]:not([tabindex="-1"])',
+          ),
+        );
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements.at(-1);
+
+        if (event.shiftKey && document.activeElement === firstElement) {
+          event.preventDefault();
+          lastElement?.focus();
+        } else if (!event.shiftKey && document.activeElement === lastElement) {
+          event.preventDefault();
+          firstElement?.focus();
+        }
       }
     };
 
     const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    document.addEventListener('keydown', handleKeyDown);
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", handleKeyDown);
+    window.requestAnimationFrame(() => modalCloseRef.current?.focus());
 
     return () => {
       document.body.style.overflow = previousOverflow;
-      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener("keydown", handleKeyDown);
+      modalTriggerRef.current?.focus();
+      modalTriggerRef.current = null;
     };
   }, [selectedPlan]);
 
   const scrollToSection = (id: string) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
     setMobileMenuOpen(false);
   };
 
-  const openMembershipModal = (plan: Plan) => {
-    setSelectedPlan(plan);
+  const openMembershipModal = (
+    plan: Plan,
+    branchOption: BookingBranchOption,
+    branchOptions: BookingBranchOption[] = [branchOption],
+  ) => {
+    modalTriggerRef.current = document.activeElement as HTMLElement | null;
+    setBookingContext({
+      plan,
+      branch: branchOption.branch,
+      whatsappPhone: branchOption.whatsappPhone,
+      branchOptions,
+    });
     setMembershipAttempted(false);
     setMembershipForm({
-      fullName: '',
-      nationalId: '',
-      age: '',
+      fullName: "",
+      mobile: "",
+      nationalId: "",
+      age: "",
+      paymentMethod: "",
       termsAccepted: false,
     });
   };
 
   const closeMembershipModal = () => {
-    setSelectedPlan(null);
+    setBookingContext(null);
     setMembershipAttempted(false);
   };
 
@@ -321,55 +412,127 @@ function App() {
     `السلام عليكم، أرغب في الاستفسار عن الاشتراك في ${activeBranch.name}.`,
   );
 
-  const openCampaignWhatsApp = (plan: Plan) => {
-    const message = `السلام عليكم،
-أرغب في حجز عرض اليوم الوطني السعودي 96 من نادي صحتي الرياضي:
+  const getCampaignBranchOptions = (
+    campaignTab: PricingTab,
+  ): BookingBranchOption[] => {
+    if (campaignTab === "shifa") {
+      const shifaBranch =
+        branches.find((branch) => branch.id === "shifa") ?? branches[2];
 
-- الفرع/الفروع: ${activeCampaign.label}
-- العرض المختار: ${plan.name}
-- السعر: ${plan.price} ر.س
-- مدة العرض: ${plan.period}`;
+      return [
+        {
+          branch: shifaBranch,
+          whatsappPhone: campaignOffers.shifa.whatsappPhone,
+        },
+      ];
+    }
 
-    window.open(
-      whatsappUrl(activeCampaign.whatsappPhone, message),
-      '_blank',
-      'noopener,noreferrer',
-    );
+    const mansouraBranch =
+      branches.find((branch) => branch.id === "mansoura") ?? branches[0];
+    const saadahBranch =
+      branches.find((branch) => branch.id === "saadah") ?? branches[1];
+
+    return [
+      {
+        branch: mansouraBranch,
+        whatsappPhone: campaignOffers.mansouraSaadah.whatsappPhone,
+      },
+      {
+        branch: saadahBranch,
+        whatsappPhone: saadahBranch.phone,
+      },
+    ];
   };
 
+  const openCampaignModal = (plan: Plan) => {
+    const branchOptions = getCampaignBranchOptions(pricingTab);
+    const preferredBranch =
+      branchOptions.find((option) => option.branch.id === activeBranch.id) ??
+      branchOptions[0];
+
+    openMembershipModal(plan, preferredBranch, branchOptions);
+  };
+
+  const openActiveBranchCampaignModal = () => {
+    const activePricingTab: PricingTab =
+      activeBranch.id === "shifa" ? "shifa" : "mansouraSaadah";
+    const campaign = campaignOffers[activePricingTab];
+    const plan =
+      campaign.plans.find((campaignPlan) => campaignPlan.featured) ??
+      campaign.plans[0];
+    const branchOptions = getCampaignBranchOptions(activePricingTab);
+    const preferredBranch =
+      branchOptions.find((option) => option.branch.id === activeBranch.id) ??
+      branchOptions[0];
+
+    openMembershipModal(plan, preferredBranch, branchOptions);
+  };
+
+  const fullNameParts = membershipForm.fullName
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  const isFullNameValid =
+    fullNameParts.length >= 3 &&
+    fullNameParts.every((part) => /^[\p{L}]+(?:['’-][\p{L}]+)*$/u.test(part));
+  const isMobileValid = /^05\d{8}$/.test(membershipForm.mobile);
   const isUnderage =
-    membershipForm.age.trim() !== '' &&
+    membershipForm.age.trim() !== "" &&
     /^\d+$/.test(membershipForm.age) &&
     Number(membershipForm.age) < 17;
   const isMembershipFormValid =
-    membershipForm.fullName.trim().length >= 3 &&
+    isFullNameValid &&
+    isMobileValid &&
     /^\d{10}$/.test(membershipForm.nationalId) &&
     /^\d+$/.test(membershipForm.age) &&
     Number(membershipForm.age) >= 17 &&
+    membershipForm.paymentMethod !== "" &&
     membershipForm.termsAccepted;
 
   const handleMembershipSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setMembershipAttempted(true);
 
-    if (!selectedPlan || !isMembershipFormValid) {
+    if (!selectedPlan || !bookingContext || !isMembershipFormValid) {
+      window.requestAnimationFrame(() => {
+        modalRef.current
+          ?.querySelector<HTMLElement>('[aria-invalid="true"]')
+          ?.focus();
+      });
+      return;
+    }
+
+    const selectedPaymentMethod = paymentMethods.find(
+      (method) => method.id === membershipForm.paymentMethod,
+    );
+
+    if (!selectedPaymentMethod) {
       return;
     }
 
     const message = `السلام عليكم ورحمة الله،
 أرغب في تأكيد اشتراكي في مركز صحتي الرياضي:
 
-📋 تفاصيل الاشتراك:
-- الباقة المختارة: ${selectedPlan.name} - ${selectedPlan.price} ريال
-- الفرع: ${activeBranch.name}
+📋 تفاصيل العرض:
+- الباقة: ${selectedPlan.name} - ${selectedPlan.price} ريال
+- الفرع: ${bookingContext.branch.name}
 
 👤 بيانات المشترك:
 - الاسم: ${membershipForm.fullName.trim()}
-- رقم الهوية/الإقامة: ${membershipForm.nationalId}
-- العمر: ${membershipForm.age} سنة
-- الموافقة على الشروط: تمت الموافقة ✅`;
+- الجوال: ${membershipForm.mobile}
+- الهوية/الإقامة: ${membershipForm.nationalId}
+- العمر: ${membershipForm.age}
 
-    window.open(whatsappUrl(activeBranch.phone, message), '_blank', 'noopener,noreferrer');
+💳 وسيلة الدفع المفضلة:
+- ${selectedPaymentMethod.shortLabel}
+
+✅ تمت الموافقة على الشروط، بانتظار إتمام الاشتراك.`;
+
+    window.open(
+      whatsappUrl(bookingContext.whatsappPhone, message),
+      "_blank",
+      "noopener,noreferrer",
+    );
     closeMembershipModal();
   };
 
@@ -379,17 +542,21 @@ function App() {
         <div className="container header-inner">
           <button
             className="brand"
-            onClick={() => scrollToSection('top')}
+            onClick={() => scrollToSection("top")}
             aria-label="العودة إلى بداية الصفحة"
           >
-            <img className="brand-logo" src={logoImage} alt="شعار مركز صحتي الرياضي" />
+            <img
+              className="brand-logo"
+              src={logoImage}
+              alt="شعار مركز صحتي الرياضي"
+            />
             <span className="brand-copy">
               <strong>مركز صحتي الرياضي</strong>
               <small>MY HEALTH</small>
             </span>
           </button>
 
-          <nav className={`desktop-nav ${mobileMenuOpen ? 'is-open' : ''}`}>
+          <nav className={`desktop-nav ${mobileMenuOpen ? "is-open" : ""}`}>
             {navItems.map((item) => (
               <button key={item.id} onClick={() => scrollToSection(item.id)}>
                 {item.label}
@@ -408,7 +575,7 @@ function App() {
             </a>
             <button
               className="button button-lime button-small header-cta"
-              onClick={() => scrollToSection('offers')}
+              onClick={openActiveBranchCampaignModal}
             >
               اشترك الآن
               <ArrowLeft size={17} />
@@ -416,7 +583,7 @@ function App() {
             <button
               className="mobile-menu-button"
               onClick={() => setMobileMenuOpen((open) => !open)}
-              aria-label={mobileMenuOpen ? 'إغلاق القائمة' : 'فتح القائمة'}
+              aria-label={mobileMenuOpen ? "إغلاق القائمة" : "فتح القائمة"}
               aria-expanded={mobileMenuOpen}
             >
               {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
@@ -450,14 +617,14 @@ function App() {
               <div className="hero-actions">
                 <button
                   className="button button-lime button-large"
-                  onClick={() => scrollToSection('offers')}
+                  onClick={openActiveBranchCampaignModal}
                 >
                   احجز اشتراكك الصيفي
                   <ArrowLeft size={19} />
                 </button>
                 <button
                   className="button button-ghost button-large"
-                  onClick={() => scrollToSection('branches')}
+                  onClick={() => scrollToSection("branches")}
                 >
                   استكشف الفروع
                   <ArrowUpLeft size={18} />
@@ -496,7 +663,7 @@ function App() {
           </div>
           <button
             className="scroll-cue"
-            onClick={() => scrollToSection('branches')}
+            onClick={() => scrollToSection("branches")}
             aria-label="انتقل إلى معلومات الفروع"
           >
             <span>اكتشف المزيد</span>
@@ -520,13 +687,17 @@ function App() {
               </p>
             </div>
 
-            <div className="branch-tabs" role="tablist" aria-label="فروع مركز صحتي">
+            <div
+              className="branch-tabs"
+              role="tablist"
+              aria-label="فروع مركز صحتي"
+            >
               {branches.map((branch, index) => (
                 <button
                   key={branch.id}
                   role="tab"
                   aria-selected={activeBranch.id === branch.id}
-                  className={`branch-tab ${activeBranch.id === branch.id ? 'active' : ''}`}
+                  className={`branch-tab ${activeBranch.id === branch.id ? "active" : ""}`}
                   onClick={() => setActiveBranchId(branch.id)}
                 >
                   <span className="branch-index">0{index + 1}</span>
@@ -603,7 +774,9 @@ function App() {
               </div>
               <div className="campaign-banner-copy">
                 <span className="campaign-kicker">اليوم الوطني السعودي 96</span>
-                <strong>عروض اليوم الوطني السعودي 96 - نادي صحتي الرياضي</strong>
+                <strong>
+                  عروض اليوم الوطني السعودي 96 - نادي صحتي الرياضي
+                </strong>
                 <span>همة نحو اللياقة | باقات حصرية لفترة محدودة</span>
               </div>
               <div className="campaign-banner-side">
@@ -612,6 +785,14 @@ function App() {
                   عرض خاص لفترة محدودة
                 </span>
                 <small>{activeCampaign.label}</small>
+                <button
+                  type="button"
+                  className="campaign-banner-button"
+                  onClick={() => openCampaignModal(featuredCampaignPlan)}
+                >
+                  احجز العرض الآن
+                  <ArrowLeft size={15} />
+                </button>
               </div>
             </div>
 
@@ -624,7 +805,11 @@ function App() {
               <p>بدّل بين نماذج التسعير واختر الباقة التي تناسب هدفك.</p>
             </div>
 
-            <div className="campaign-tabs" role="tablist" aria-label="نماذج عروض اليوم الوطني">
+            <div
+              className="campaign-tabs"
+              role="tablist"
+              aria-label="نماذج عروض اليوم الوطني"
+            >
               {pricingTabs.map((tab) => {
                 const offer = campaignOffers[tab];
                 const isActive = pricingTab === tab;
@@ -636,11 +821,22 @@ function App() {
                     role="tab"
                     aria-selected={isActive}
                     aria-controls="campaign-pricing-panel"
-                    className={`campaign-tab ${isActive ? 'active' : ''}`}
-                    onClick={() => setPricingTab(tab)}
+                    className={`campaign-tab ${isActive ? "active" : ""}`}
+                    onClick={() => {
+                      setPricingTab(tab);
+                      if (tab === "shifa") {
+                        setActiveBranchId("shifa");
+                      } else if (activeBranchId === "shifa") {
+                        setActiveBranchId("mansoura");
+                      }
+                    }}
                   >
                     <span>{offer.tabLabel}</span>
-                    <small>{tab === 'shifa' ? 'شارع الخليل بن أحمد' : 'نموذج موحّد للفرعين'}</small>
+                    <small>
+                      {tab === "shifa"
+                        ? "شارع الخليل بن أحمد"
+                        : "نموذج موحّد للفرعين"}
+                    </small>
                   </button>
                 );
               })}
@@ -655,7 +851,7 @@ function App() {
               {activeCampaign.plans.map((plan, index) => (
                 <article
                   key={`${pricingTab}-${plan.name}`}
-                  className={`plan-card campaign-plan-card ${plan.featured ? 'featured' : ''}`}
+                  className={`plan-card campaign-plan-card ${plan.featured ? "featured" : ""}`}
                 >
                   {plan.badge && (
                     <div className="campaign-plan-badge">
@@ -689,7 +885,7 @@ function App() {
                   <button
                     type="button"
                     className="button button-lime plan-button campaign-plan-button"
-                    onClick={() => openCampaignWhatsApp(plan)}
+                    onClick={() => openCampaignModal(plan)}
                   >
                     احجز العرض الآن عبر واتساب
                     <MessageCircle size={17} />
@@ -714,7 +910,7 @@ function App() {
                 <button
                   type="button"
                   className="button button-outline campaign-form-button"
-                  onClick={() => openMembershipModal(activeCampaign.plans[0])}
+                  onClick={() => openCampaignModal(featuredCampaignPlan)}
                 >
                   تعبئة نموذج الاشتراك
                   <ArrowLeft size={15} />
@@ -749,7 +945,11 @@ function App() {
                     className={`facility-card ${facility.size}`}
                     key={facility.title}
                   >
-                    <img src={facility.image} alt={facility.title} loading="lazy" />
+                    <img
+                      src={facility.image}
+                      alt={facility.title}
+                      loading="lazy"
+                    />
                     <div className="facility-overlay" />
                     <div className="facility-content">
                       <span className="facility-icon">
@@ -817,7 +1017,9 @@ function App() {
                   </div>
                   <p>“{review.quote}”</p>
                   <div className="review-author">
-                    <span className="review-avatar">{review.name.charAt(0)}</span>
+                    <span className="review-avatar">
+                      {review.name.charAt(0)}
+                    </span>
                     <div>
                       <strong>{review.name}</strong>
                       <small>
@@ -847,7 +1049,7 @@ function App() {
             </div>
             <button
               className="button button-lime button-large"
-              onClick={() => scrollToSection('offers')}
+              onClick={() => scrollToSection("offers")}
             >
               شاهد الباقات
               <ArrowLeft size={19} />
@@ -860,16 +1062,23 @@ function App() {
         <div className="container footer-main">
           <div className="footer-brand">
             <div className="brand footer-brand-lockup">
-              <img className="brand-logo" src={logoImage} alt="شعار مركز صحتي الرياضي" />
+              <img
+                className="brand-logo"
+                src={logoImage}
+                alt="شعار مركز صحتي الرياضي"
+              />
               <span className="brand-copy">
                 <strong>مركز صحتي الرياضي</strong>
                 <small>MY HEALTH</small>
               </span>
             </div>
-            <p>
-              مساحة تساعدك أن تتحرك أكثر، تشعر أفضل، وتعيش حياة أقوى.
-            </p>
-            <a className="footer-whatsapp" href={branchWhatsAppUrl} target="_blank" rel="noreferrer">
+            <p>مساحة تساعدك أن تتحرك أكثر، تشعر أفضل، وتعيش حياة أقوى.</p>
+            <a
+              className="footer-whatsapp"
+              href={branchWhatsAppUrl}
+              target="_blank"
+              rel="noreferrer"
+            >
               <MessageCircle size={17} />
               تواصل مع {activeBranch.name}
             </a>
@@ -888,7 +1097,7 @@ function App() {
             {branches.map((branch) => (
               <a
                 key={branch.id}
-                className={activeBranch.id === branch.id ? 'active' : ''}
+                className={activeBranch.id === branch.id ? "active" : ""}
                 href={phoneHref(branch.phone)}
                 onClick={() => setActiveBranchId(branch.id)}
               >
@@ -933,8 +1142,10 @@ function App() {
           }}
         >
           <section
+            ref={modalRef}
             className="membership-modal"
             role="dialog"
+            dir="rtl"
             aria-modal="true"
             aria-labelledby="membership-modal-title"
             aria-describedby="membership-modal-description"
@@ -943,16 +1154,17 @@ function App() {
               <div>
                 <span className="modal-eyebrow">
                   <span className="eyebrow-dot" />
-                  خطوة واحدة تفصلك عن البداية
+                  بياناتك محفوظة حتى تنتقل لواتساب
                 </span>
-                <h2 id="membership-modal-title">إتمام طلب الاشتراك</h2>
+                <h2 id="membership-modal-title">تأكيد الاشتراك وحجز العرض</h2>
                 <p id="membership-modal-description">
                   {selectedPlan.name} — {selectedPlan.price} ريال
-                  <span> · {activeBranch.name}</span>
+                  <span> · {selectedBookingBranch.name}</span>
                 </p>
               </div>
               <button
                 type="button"
+                ref={modalCloseRef}
                 className="modal-close"
                 onClick={closeMembershipModal}
                 aria-label="إغلاق نافذة الاشتراك"
@@ -961,11 +1173,52 @@ function App() {
               </button>
             </div>
 
-            <form className="membership-form" onSubmit={handleMembershipSubmit} noValidate>
+            <form
+              className="membership-form"
+              onSubmit={handleMembershipSubmit}
+              noValidate
+            >
+              {bookingBranchOptions.length > 1 && (
+                <fieldset className="booking-branch-selector">
+                  <legend>اختر فرع الحجز</legend>
+                  <div>
+                    {bookingBranchOptions.map((option) => {
+                      const isSelected =
+                        selectedBookingBranch.id === option.branch.id;
+
+                      return (
+                        <button
+                          key={option.branch.id}
+                          type="button"
+                          className={isSelected ? "is-selected" : ""}
+                          aria-pressed={isSelected}
+                          onClick={() =>
+                            setBookingContext((current) =>
+                              current
+                                ? {
+                                    ...current,
+                                    branch: option.branch,
+                                    whatsappPhone: option.whatsappPhone,
+                                  }
+                                : current,
+                            )
+                          }
+                        >
+                          <span>{option.branch.name}</span>
+                          {isSelected && <Check size={14} />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </fieldset>
+              )}
+
               <div className="membership-form-grid">
                 <label className="membership-field field-full">
                   <span>الاسم الثلاثي</span>
                   <input
+                    id="membership-full-name"
+                    name="fullName"
                     type="text"
                     value={membershipForm.fullName}
                     onChange={(event) =>
@@ -977,22 +1230,84 @@ function App() {
                     placeholder="اكتب اسمك الثلاثي"
                     autoComplete="name"
                     required
-                    aria-invalid={membershipAttempted && membershipForm.fullName.trim().length < 3}
+                    aria-invalid={membershipAttempted && !isFullNameValid}
+                    aria-describedby={
+                      membershipAttempted && !isFullNameValid
+                        ? "membership-full-name-error"
+                        : undefined
+                    }
                   />
-                  {membershipAttempted && membershipForm.fullName.trim().length < 3 && (
-                    <small className="field-error">يرجى كتابة الاسم كاملاً.</small>
+                  {membershipAttempted && !isFullNameValid && (
+                    <small
+                      id="membership-full-name-error"
+                      className="field-error"
+                      role="alert"
+                    >
+                      يرجى كتابة الاسم الثلاثي كاملاً.
+                    </small>
                   )}
+                </label>
+
+                <label className="membership-field">
+                  <span>رقم الجوال</span>
+                  <input
+                    id="membership-mobile"
+                    name="mobile"
+                    type="tel"
+                    value={membershipForm.mobile}
+                    onChange={(event) =>
+                      setMembershipForm((current) => ({
+                        ...current,
+                        mobile: normalizeDigits(event.target.value).slice(
+                          0,
+                          10,
+                        ),
+                      }))
+                    }
+                    placeholder="05xxxxxxxx"
+                    inputMode="numeric"
+                    autoComplete="tel"
+                    maxLength={10}
+                    required
+                    aria-invalid={
+                      (membershipAttempted ||
+                        membershipForm.mobile.length > 0) &&
+                      !isMobileValid
+                    }
+                    aria-describedby={
+                      (membershipAttempted ||
+                        membershipForm.mobile.length > 0) &&
+                      !isMobileValid
+                        ? "membership-mobile-error"
+                        : undefined
+                    }
+                  />
+                  {(membershipAttempted || membershipForm.mobile.length > 0) &&
+                    !isMobileValid && (
+                      <small
+                        id="membership-mobile-error"
+                        className="field-error"
+                        role="alert"
+                      >
+                        أدخل رقم جوال من 10 أرقام يبدأ بـ 05.
+                      </small>
+                    )}
                 </label>
 
                 <label className="membership-field">
                   <span>رقم الهوية الوطنية / الإقامة</span>
                   <input
+                    id="membership-national-id"
+                    name="nationalId"
                     type="text"
                     value={membershipForm.nationalId}
                     onChange={(event) =>
                       setMembershipForm((current) => ({
                         ...current,
-                        nationalId: normalizeDigits(event.target.value).slice(0, 10),
+                        nationalId: normalizeDigits(event.target.value).slice(
+                          0,
+                          10,
+                        ),
                       }))
                     }
                     placeholder="10 أرقام"
@@ -1001,19 +1316,36 @@ function App() {
                     maxLength={10}
                     required
                     aria-invalid={
-                      (membershipAttempted || membershipForm.nationalId.length > 0) &&
+                      (membershipAttempted ||
+                        membershipForm.nationalId.length > 0) &&
                       !/^\d{10}$/.test(membershipForm.nationalId)
                     }
+                    aria-describedby={
+                      (membershipAttempted ||
+                        membershipForm.nationalId.length > 0) &&
+                      !/^\d{10}$/.test(membershipForm.nationalId)
+                        ? "membership-national-id-error"
+                        : undefined
+                    }
                   />
-                  {(membershipAttempted || membershipForm.nationalId.length > 0) &&
+                  {(membershipAttempted ||
+                    membershipForm.nationalId.length > 0) &&
                     !/^\d{10}$/.test(membershipForm.nationalId) && (
-                      <small className="field-error">أدخل 10 أرقام بالضبط.</small>
+                      <small
+                        id="membership-national-id-error"
+                        className="field-error"
+                        role="alert"
+                      >
+                        أدخل 10 أرقام بالضبط.
+                      </small>
                     )}
                 </label>
 
                 <label className="membership-field">
                   <span>العمر</span>
                   <input
+                    id="membership-age"
+                    name="age"
                     type="text"
                     value={membershipForm.age}
                     onChange={(event) =>
@@ -1027,26 +1359,120 @@ function App() {
                     autoComplete="off"
                     maxLength={3}
                     required
-                    aria-invalid={membershipAttempted && !/^\d+$/.test(membershipForm.age)}
+                    aria-invalid={
+                      membershipAttempted &&
+                      (!/^\d+$/.test(membershipForm.age) || isUnderage)
+                    }
+                    aria-describedby={
+                      membershipAttempted &&
+                      (!/^\d+$/.test(membershipForm.age) || isUnderage)
+                        ? "membership-age-error"
+                        : undefined
+                    }
                   />
                   {membershipAttempted && !/^\d+$/.test(membershipForm.age) && (
-                    <small className="field-error">يرجى إدخال العمر.</small>
+                    <small
+                      id="membership-age-error"
+                      className="field-error"
+                      role="alert"
+                    >
+                      يرجى إدخال العمر.
+                    </small>
                   )}
                 </label>
               </div>
 
               {isUnderage && (
-                <div className="age-rejection" role="alert">
+                <div
+                  id="membership-age-error"
+                  className="age-rejection"
+                  role="alert"
+                >
                   <AlertCircle size={20} />
                   <p>
-                    نعتذر منك يا بطل 🌸.. شروط التسجيل في الصالات تتطلب أن يكون العمر 17 سنة
-                    فما فوق حرصاً على سلامتك. نتمنى أن نراك معنا مستقبلاً!
+                    نعتذر منك يا بطل 🌸.. شروط التسجيل في الصالات تتطلب أن يكون
+                    العمر 17 سنة فما فوق حرصاً على سلامتك. نتمنى أن نراك معنا
+                    مستقبلاً!
                   </p>
                 </div>
               )}
 
+              <fieldset
+                className="payment-preference"
+                aria-describedby={
+                  membershipAttempted && !membershipForm.paymentMethod
+                    ? "membership-payment-error"
+                    : undefined
+                }
+              >
+                <legend>
+                  وسيلة الدفع المفضلة
+                  <span>اختر وسيلة واحدة</span>
+                </legend>
+                <div className="payment-options">
+                  {paymentMethods.map((method) => {
+                    const isSelected =
+                      membershipForm.paymentMethod === method.id;
+
+                    return (
+                      <label
+                        key={method.id}
+                        className={`payment-option ${isSelected ? "is-selected" : ""}`}
+                      >
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value={method.id}
+                          checked={isSelected}
+                          aria-invalid={
+                            membershipAttempted && !membershipForm.paymentMethod
+                          }
+                          onChange={() =>
+                            setMembershipForm((current) => ({
+                              ...current,
+                              paymentMethod: method.id,
+                            }))
+                          }
+                          required
+                        />
+                        <span className="payment-radio" aria-hidden="true">
+                          <Check size={12} />
+                        </span>
+                        <span className="payment-option-copy">
+                          <strong>{method.label}</strong>
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+                {membershipForm.paymentMethod && (
+                  <div className="payment-description" role="status">
+                    <ShieldCheck size={18} />
+                    <span>
+                      {
+                        paymentMethods.find(
+                          (method) =>
+                            method.id === membershipForm.paymentMethod,
+                        )?.description
+                      }
+                    </span>
+                  </div>
+                )}
+                {membershipAttempted && !membershipForm.paymentMethod && (
+                  <small
+                    id="membership-payment-error"
+                    className="field-error payment-error"
+                    role="alert"
+                  >
+                    يرجى اختيار وسيلة الدفع المفضلة.
+                  </small>
+                )}
+              </fieldset>
+
               <label className="terms-field">
                 <input
+                  id="membership-terms"
+                  name="termsAccepted"
                   type="checkbox"
                   checked={membershipForm.termsAccepted}
                   onChange={(event) =>
@@ -1056,31 +1482,42 @@ function App() {
                     }))
                   }
                   required
+                  aria-invalid={
+                    membershipAttempted && !membershipForm.termsAccepted
+                  }
+                  aria-describedby={
+                    membershipAttempted && !membershipForm.termsAccepted
+                      ? "membership-terms-error"
+                      : undefined
+                  }
                 />
                 <span className="terms-checkmark">
                   <Check size={13} />
                 </span>
-                <span>
-                  أوافق على الشروط والأحكام الخاصة بمركز صحتي الرياضي ولائحة المشتركين
-                </span>
+                <span>أوافق على لائحة النادي والشروط والأحكام</span>
               </label>
               {membershipAttempted && !membershipForm.termsAccepted && (
-                <small className="field-error terms-error">يجب الموافقة على الشروط للمتابعة.</small>
+                <small
+                  id="membership-terms-error"
+                  className="field-error terms-error"
+                  role="alert"
+                >
+                  يجب الموافقة على الشروط للمتابعة.
+                </small>
               )}
 
               <div className="membership-form-footer">
                 <button
                   type="submit"
                   className="button button-lime membership-submit"
-                  disabled={!isMembershipFormValid}
                 >
-                  تأكيد ومتابعة عبر واتساب 🚀
+                  تأكيد ومتابعة ⚡
                   <ArrowLeft size={18} />
                 </button>
                 <small>
                   {isUnderage
-                    ? 'لا يمكن المتابعة قبل استيفاء شرط العمر.'
-                    : 'سيتم فتح محادثة واتساب مع الفرع المختار.'}
+                    ? "لا يمكن المتابعة قبل استيفاء شرط العمر."
+                    : "سيتم فتح محادثة واتساب مع الفرع المختار."}
                 </small>
               </div>
             </form>
