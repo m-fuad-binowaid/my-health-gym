@@ -43,10 +43,14 @@ jobs:
         env:
           NODE_ENV: production
           PORT: 5173
-          BASE_PATH: /my-health-gym/
+          BASE_PATH: /
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://jxymyezzkspdbcmstkhp.supabase.co' }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4eW15ZXp6a3NwZGJjbXN0a2hwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk0MTkyNTQsImV4cCI6MjEwNDk5NTI1NH0.j5mW5i1tIZCL-UCNnC_B6mhmkznKd7hknEESrnDlP84' }}
 
-      - name: Add GitHub Pages marker
-        run: touch artifacts/my-health-gym/dist/public/.nojekyll
+      - name: Add GitHub Pages marker and CNAME
+        run: |
+          touch artifacts/my-health-gym/dist/public/.nojekyll
+          echo "myhealthsa.com" > artifacts/my-health-gym/dist/public/CNAME
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
