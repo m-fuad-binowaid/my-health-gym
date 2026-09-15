@@ -16,7 +16,7 @@ createRoot(document.getElementById("root")!, {
   },
 }).render(
   <ErrorBoundary>
-    <Router base={basePath}>
+    <Router base={basePath || undefined}>
       <Switch>
         <Route path="/admin" component={AdminApp} />
         <Route path="/" component={App} />
