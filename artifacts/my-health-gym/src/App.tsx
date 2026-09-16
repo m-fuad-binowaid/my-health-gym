@@ -5,6 +5,7 @@ import {
   AlertCircle,
   Check,
   Clock3,
+  CreditCard,
   Dumbbell,
   ExternalLink,
   MapPin,
@@ -61,7 +62,7 @@ type Plan = {
 
 type PricingTab = "shifa" | "mansouraSaadah";
 
-type PaymentMethod = "bankTransfer" | "installments" | "payAtGym";
+type PaymentMethod = "payAtGym";
 
 type BookingBranchOption = {
   branch: Branch;
@@ -202,23 +203,11 @@ const paymentMethods: {
   description: string;
 }[] = [
   {
-    id: "bankTransfer",
-    label: "تحويل بنكي",
-    shortLabel: "تحويل بنكي",
-    description: "سيتم تزويدك بالآيبان ورفع الإيصال عبر الواتساب.",
-  },
-  {
-    id: "installments",
-    label: "تقسيط شهري (تابي / تمارا)",
-    shortLabel: "تقسيط تابي وتمارا",
-    description: "تُطبق شروط وأحكام مزودي خدمة التقسيط.",
-  },
-  {
     id: "payAtGym",
     label: "دفع عند النادي مباشرة",
-    shortLabel: "دفع في مقر النادي",
+    shortLabel: "الدفع عند النادي (كاش / شبكة / تابي وتمارا)",
     description:
-      "الدفع عبر الشبكة أو نقداً في استقبال الفرع عند زيارتك الأولى.",
+      "يمكنك الدفع في مقر النادي عبر: كاش، شبكة (مدى / فيزا)، أو بالتقسيط عبر تابي وتمارا.",
   },
 ];
 
@@ -323,7 +312,7 @@ function App() {
     mobile: "",
     nationalId: "",
     age: "",
-    paymentMethod: "" as PaymentMethod | "",
+    paymentMethod: "payAtGym" as PaymentMethod,
     termsAccepted: false,
   });
   const [membershipAttempted, setMembershipAttempted] = useState(false);
@@ -468,7 +457,7 @@ function App() {
       mobile: "",
       nationalId: "",
       age: "",
-      paymentMethod: "",
+      paymentMethod: "payAtGym",
       termsAccepted: false,
     });
   };
@@ -557,7 +546,7 @@ function App() {
     /^\d{10}$/.test(membershipForm.nationalId) &&
     /^\d+$/.test(membershipForm.age) &&
     Number(membershipForm.age) >= 17 &&
-    membershipForm.paymentMethod !== "" &&
+    Boolean(membershipForm.paymentMethod) &&
     membershipForm.termsAccepted;
 
   const handleMembershipSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -1533,7 +1522,7 @@ function App() {
                 </div>
                 {membershipForm.paymentMethod && (
                   <div className="payment-description" role="status">
-                    <ShieldCheck size={18} />
+                    <CreditCard size={18} />
                     <span>
                       {
                         paymentMethods.find(
