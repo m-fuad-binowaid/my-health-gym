@@ -349,7 +349,7 @@ function SupabaseItemsManager({
   // New item form state
   const [newItem, setNewItem] = useState<NewItem>({
     title: "",
-    price: 596,
+    price: 850,
     category: "shifa",
     image: "",
     active: true,
@@ -406,7 +406,7 @@ function SupabaseItemsManager({
 
       setNotice({ tone: "success", message: `تمت إضافة باقة "${newItem.title}" بنجاح!` });
       setIsAddModalOpen(false);
-      setNewItem({ title: "", price: 596, category: "shifa", image: "", active: true });
+      setNewItem({ title: "", price: 850, category: "shifa", image: "", active: true });
       loadItems();
     } catch (err: unknown) {
       setNotice({
@@ -761,7 +761,7 @@ function SupabaseItemsManager({
                 label="عنوان الباقة / المنتج"
                 value={newItem.title}
                 onChange={(val) => setNewItem({ ...newItem, title: val })}
-                placeholder="مثال: اشتراك 6 شهور + شهر مجاني"
+                placeholder="مثال: باقة 6 شهور - التزام أقوى"
                 testId="input-new-item-title"
               />
 
@@ -772,7 +772,7 @@ function SupabaseItemsManager({
                   onChange={(val) => setNewItem({ ...newItem, price: Number(val) || 0 })}
                   inputMode="numeric"
                   type="number"
-                  placeholder="596"
+                  placeholder="850"
                   testId="input-new-item-price"
                 />
 
@@ -1155,10 +1155,10 @@ function AdminDashboard({
             {
               id: newId,
               name: "باقة جديدة",
-              eyebrow: "عرض خاص",
-              price: "596",
-              period: "لفترة محدودة",
-              benefits: ["دخول النادي", "المسابح والمرافق"],
+              eyebrow: "باقة عضوية",
+              price: "850",
+              period: "عضوية شاملة",
+              benefits: ["دخول النادي", "المسابح والمرافق", "شامل جميع الأجهزة"],
               freeDays: "0",
               freezeDays: "0",
             },
@@ -1313,7 +1313,7 @@ function AdminDashboard({
             onClick={() => setActiveSection("hero")}
           >
             <Megaphone size={17} />
-            <span>بنرات وإعلانات اليوم الوطني</span>
+            <span>العناوين والبنر الترويجي</span>
           </button>
         </nav>
 
@@ -1444,7 +1444,7 @@ function AdminDashboard({
             <div className="admin-section-header">
               <div className="admin-section-title">
                 <h2>العناوين والبنرات الترويجية</h2>
-                <p>تخصيص بنر اليوم الوطني السعودي والعناوين الرئيسية.</p>
+                <p>تخصيص العناوين الرئيسية والبنر الترويجي للباقات.</p>
               </div>
             </div>
 
@@ -1485,7 +1485,7 @@ function AdminDashboard({
                     },
                   }))
                 }
-                label="تفعيل شريط العرض الحصري أعلى الصفحة"
+                label="تفعيل البنر الترويجي للباقات"
                 testId="toggle-exclusive-banner"
               />
             </div>

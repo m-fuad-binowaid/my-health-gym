@@ -56,15 +56,14 @@ CREATE TRIGGER on_items_updated
   FOR EACH ROW
   EXECUTE FUNCTION public.handle_updated_at();
 
--- 7. Seed Initial Data (Matching My Health Gym campaigns)
+-- 7. Seed Initial Data (Matching My Health Gym unified packages)
 INSERT INTO public.items (title, price, image, category, active)
 SELECT * FROM (VALUES
-  ('96 يوم - انطلاقة وطنية', 596.00, '', 'shifa', true),
-  ('3 شهور + 96 يوم مجاناً (الأكثر طلباً)', 796.00, '', 'shifa', true),
-  ('6 شهور + 96 يوم مجاناً', 996.00, '', 'shifa', true),
-  ('9 شهور + 96 يوم مجاناً', 1096.00, '', 'shifa', true),
-  ('ثلاثة شهور - بداية قوية', 596.00, '', 'mansouraSaadah', true),
-  ('سته شهور - التزام يصنع الفرق', 696.00, '', 'mansouraSaadah', true),
-  ('سنة + شهر - القيمة الأفضل', 996.00, '', 'mansouraSaadah', true)
+  ('3 شهور', 850.00, '', 'shifa', true),
+  ('6 شهور', 1200.00, '', 'shifa', true),
+  ('سنة', 2000.00, '', 'shifa', true),
+  ('3 شهور', 850.00, '', 'mansouraSaadah', true),
+  ('6 شهور', 1200.00, '', 'mansouraSaadah', true),
+  ('سنة', 2000.00, '', 'mansouraSaadah', true)
 ) AS v(title, price, image, category, active)
 WHERE NOT EXISTS (SELECT 1 FROM public.items LIMIT 1);

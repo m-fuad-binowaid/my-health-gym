@@ -76,124 +76,6 @@ type BookingContext = {
   branchOptions: BookingBranchOption[];
 };
 
-type CampaignOffer = {
-  label: string;
-  tabLabel: string;
-  whatsappPhone: string;
-  contacts: string;
-  plans: Plan[];
-  alert?: string;
-};
-
-const defaultBranches: Branch[] = [
-  {
-    id: "mansoura",
-    name: "فرع المنصورة",
-    englishName: "Al Mansoura",
-    phone: "0536903636",
-    whatsappPhone: "0509284419",
-    hours: "05:00 صباحاً – 03:00 صباحاً",
-    friday: "الجمعة: 01:00 ظهراً – 12:00 منتصف الليل",
-    mapUrl:
-      "https://www.google.com/maps/search/?api=1&query=My+Health+Gym+Al+Mansoura+Riyadh",
-  },
-  {
-    id: "saadah",
-    name: "فرع السعادة",
-    englishName: "Al Saadah",
-    phone: "0552632207",
-    whatsappPhone: "0552632207",
-    hours: "05:30 صباحاً – 03:00 صباحاً",
-    friday: "الجمعة: 02:00 ظهراً – 12:00 منتصف الليل",
-    mapUrl:
-      "https://www.google.com/maps/search/?api=1&query=My+Health+Gym+Al+Saadah+Riyadh",
-  },
-  {
-    id: "shifa",
-    name: "فرع الشفا",
-    englishName: "Al Shifa",
-    phone: "0552631967",
-    whatsappPhone: "0534951220",
-    hours: "06:00 صباحاً – 02:00 صباحاً",
-    friday: "طوال أيام الأسبوع",
-    mapUrl:
-      "https://www.google.com/maps/search/?api=1&query=My+Health+Gym+Al+Shifa+Riyadh",
-  },
-];
-
-const defaultCampaignOffers: Record<PricingTab, CampaignOffer> = {
-  shifa: {
-    label: "فرع الشفاء (شارع الخليل بن أحمد)",
-    tabLabel: "فرع الشفاء",
-    whatsappPhone: "0534951220",
-    contacts: "فرع الشفاء (هاتف: 0534951220 / 0552631967 / 0534909220)",
-    plans: [
-      {
-        name: "96 يوم",
-        eyebrow: "انطلاقة وطنية",
-        price: "596",
-        period: "عرض اليوم الوطني",
-        benefits: ["دخول النادي", "المرافق الرياضية", "لفترة محدودة"],
-      },
-      {
-        name: "3 شهور + 96 يوم مجاناً",
-        eyebrow: "الاختيار المفضل",
-        price: "796",
-        period: "3 شهور + هدية وطنية",
-        benefits: ["دخول النادي", "المسابح والمرافق", "96 يوم مجاناً"],
-        featured: true,
-        badge: "الأكثر طلباً",
-      },
-      {
-        name: "6 شهور + 96 يوم مجاناً",
-        eyebrow: "التزام أقوى",
-        price: "996",
-        period: "6 شهور + هدية وطنية",
-        benefits: ["دخول النادي", "المسابح والمرافق", "96 يوم مجاناً"],
-      },
-      {
-        name: "9 شهور + 96 يوم مجاناً",
-        eyebrow: "خطوة طويلة المدى",
-        price: "1096",
-        period: "9 شهور + هدية وطنية",
-        benefits: ["دخول النادي", "المسابح والمرافق", "96 يوم مجاناً"],
-      },
-    ],
-  },
-  mansouraSaadah: {
-    label: "فرع المنصورة & فرع السعادة",
-    tabLabel: "فرع المنصورة & فرع السعادة",
-    whatsappPhone: "0509284419",
-    contacts: "فرع المنصورة (0509284419) | فرع السعادة (0552632207)",
-    alert: "العرض بدون تنازل وبدون إيقاف",
-    plans: [
-      {
-        name: "ثلاثة شهور",
-        eyebrow: "بداية قوية",
-        price: "596",
-        period: "عرض اليوم الوطني",
-        benefits: ["دخول النادي", "المسابح والمرافق", "لفترة محدودة"],
-      },
-      {
-        name: "سته شهور",
-        eyebrow: "التزام يصنع الفرق",
-        price: "696",
-        period: "عرض اليوم الوطني",
-        benefits: ["دخول النادي", "المسابح والمرافق", "لفترة محدودة"],
-      },
-      {
-        name: "سنة + شهر",
-        eyebrow: "القيمة الأفضل",
-        price: "996",
-        period: "12 شهراً + شهر هدية",
-        benefits: ["وصول كامل طوال العام", "المسابح والمرافق", "شهر إضافي"],
-        featured: true,
-        badge: "القيمة الأفضل",
-      },
-    ],
-  },
-};
-
 const pricingTabs: PricingTab[] = ["shifa", "mansouraSaadah"];
 
 const paymentMethods: {
@@ -274,7 +156,7 @@ const reviews = [
 
 const navItems = [
   { label: "الفروع", id: "branches" },
-  { label: "العروض", id: "offers" },
+  { label: "الباقات", id: "offers" },
   { label: "المرافق", id: "facilities" },
   { label: "آراء المشتركين", id: "reviews" },
 ];
@@ -352,14 +234,16 @@ function App() {
         name: item.title,
         eyebrow: fallbackPlan?.eyebrow || "باقة معتمدة",
         price: String(item.price),
-        period: fallbackPlan?.period || "عرض خاص",
+        period: fallbackPlan?.period || "عضوية شاملة",
         benefits: fallbackPlan?.benefits || [
           "دخول النادي والمرافق",
           "المسابح الأولمبية",
-          "متابعة مستمرة مع المدربين",
+          "شامل جميع الأجهزة",
         ],
         featured: fallbackPlan?.featured ?? (index === 1),
-        badge: fallbackPlan?.badge ?? (index === 1 ? "الأكثر طلباً" : undefined),
+        badge:
+          fallbackPlan?.badge ??
+          (index === 1 ? "الأكثر طلباً" : index === 2 ? "القيمة الأفضل" : undefined),
         image: item.image || undefined,
       };
     });
@@ -573,18 +457,18 @@ function App() {
     const message = `السلام عليكم ورحمة الله،
 أرغب في تأكيد اشتراكي في مركز صحتي الرياضي:
 
-📋 تفاصيل العرض:
-- الباقة: ${selectedPlan.name} - ${selectedPlan.price} ريال
-- الفرع: ${bookingContext.branch.name}
+📋 تفاصيل الاشتراك:
+• الباقة: ${selectedPlan.name} - ${selectedPlan.price} ريال
+• الفرع: ${bookingContext.branch.name}
 
 👤 بيانات المشترك:
-- الاسم: ${membershipForm.fullName.trim()}
-- الجوال: ${membershipForm.mobile}
-- الهوية/الإقامة: ${membershipForm.nationalId}
-- العمر: ${membershipForm.age}
+• الاسم: ${membershipForm.fullName.trim()}
+• الجوال: ${membershipForm.mobile}
+• الهوية/الإقامة: ${membershipForm.nationalId}
+• العمر: ${membershipForm.age}
 
 💳 وسيلة الدفع المفضلة:
-- ${selectedPaymentMethod.shortLabel}
+• ${selectedPaymentMethod.shortLabel}
 
 ✅ تمت الموافقة على الشروط، بانتظار إتمام الاشتراك.`;
 
@@ -676,7 +560,7 @@ function App() {
                   className="button button-lime button-large"
                   onClick={openActiveBranchCampaignModal}
                 >
-                  احجز اشتراكك الصيفي
+                  احجز باقتك الآن
                   <ArrowLeft size={19} />
                 </button>
                 <button
@@ -832,25 +716,25 @@ function App() {
                 </div>
                 <div className="campaign-banner-copy">
                   <span className="campaign-kicker">
-                    اليوم الوطني السعودي 96
+                    مركز صحتي الرياضي | MY HEALTH
                   </span>
                   <strong>
-                    عروض اليوم الوطني السعودي 96 - نادي صحتي الرياضي
+                    أسعارنا متميزة.. ولياقتك تستحق الأفضل
                   </strong>
                   <span>{siteConfig.exclusiveBanner.note}</span>
                 </div>
                 <div className="campaign-banner-side">
                   <span className="campaign-badge">
                     <Sparkles size={14} />
-                    عرض خاص لفترة محدودة
+                    باقات عضوية مرنة
                   </span>
-                  <small>{activeCampaign.label}</small>
+                  <small>متاحة في جميع الفروع: الشفاء • المنصورة • السعادة</small>
                   <button
                     type="button"
                     className="campaign-banner-button"
                     onClick={() => openCampaignModal(featuredCampaignPlan)}
                   >
-                    احجز العرض الآن
+                    احجز باقتك الآن
                     <ArrowLeft size={15} />
                   </button>
                 </div>
@@ -858,12 +742,12 @@ function App() {
             )}
 
             <div className="section-heading centered-heading">
-              <div className="eyebrow">عروض اليوم الوطني</div>
+              <div className="eyebrow">باقات العضوية</div>
               <h2>
-                اختر عرضك،
+                اختر باقتك،
                 <span> وابدأ بقوة.</span>
               </h2>
-              <p>بدّل بين نماذج التسعير واختر الباقة التي تناسب هدفك.</p>
+              <p>باقات اشتراك موحدة في جميع فروعنا — اختر الفرع والباقة التي تناسب هدفك.</p>
               {isSupabaseLive && (
                 <div className="live-db-pill">
                   <span className="live-db-dot" />
@@ -875,7 +759,7 @@ function App() {
             <div
               className="campaign-tabs"
               role="tablist"
-              aria-label="نماذج عروض اليوم الوطني"
+              aria-label="باقات العضوية حسب الفروع"
             >
               {pricingTabs.map((tab) => {
                 const offer = campaignOffers[tab];
@@ -902,7 +786,7 @@ function App() {
                     <small>
                       {tab === "shifa"
                         ? "شارع الخليل بن أحمد"
-                        : "نموذج موحّد للفرعين"}
+                        : "نفس الباقات والأسعار الموحدة"}
                     </small>
                   </button>
                 );
@@ -961,7 +845,7 @@ function App() {
                       className="button button-lime plan-button campaign-plan-button"
                       onClick={() => openCampaignModal(plan)}
                     >
-                      احجز العرض الآن عبر واتساب
+                      احجز الباقة الآن عبر واتساب
                       <MessageCircle size={17} />
                     </button>
                   </article>
@@ -1231,10 +1115,10 @@ function App() {
                   <span className="eyebrow-dot" />
                   بياناتك محفوظة حتى تنتقل لواتساب
                 </span>
-                <h2 id="membership-modal-title">تأكيد الاشتراك وحجز العرض</h2>
+                <h2 id="membership-modal-title">تأكيد الاشتراك وحجز الباقة</h2>
                 <p id="membership-modal-description">
                   {selectedPlan.name} — {selectedPlan.price} ريال
-                  <span> · {selectedBookingBranch.name}</span>
+                  <span> • {selectedBookingBranch.name}</span>
                 </p>
               </div>
               <button

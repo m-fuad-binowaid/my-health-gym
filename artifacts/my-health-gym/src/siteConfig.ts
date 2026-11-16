@@ -48,7 +48,7 @@ export type SiteConfig = {
   campaigns: Record<PricingTab, ConfigCampaign>;
 };
 
-export const SITE_CONFIG_STORAGE_KEY = "my-health-gym:site-config:v1";
+export const SITE_CONFIG_STORAGE_KEY = "my-health-gym:site-config:v2";
 export const SITE_CONFIG_UPDATED_EVENT = "my-health-gym:site-config-updated";
 
 const plan = (
@@ -73,6 +73,39 @@ const plan = (
   ...extra,
 });
 
+const createUnifiedPlans = (prefix: string): ConfigPlan[] => [
+  plan(
+    `${prefix}-3-months`,
+    "3 شهور",
+    "بداية قوية",
+    "850",
+    "عضوية شاملة",
+    ["دخول النادي", "المسابح والمرافق", "شامل جميع الأجهزة"],
+  ),
+  plan(
+    `${prefix}-6-months`,
+    "6 شهور",
+    "التزام أقوى",
+    "1200",
+    "عضوية شاملة",
+    ["دخول النادي", "المسابح والمرافق", "شامل جميع الأجهزة"],
+    "0",
+    "0",
+    { featured: true, badge: "الأكثر طلباً" },
+  ),
+  plan(
+    `${prefix}-1-year`,
+    "سنة",
+    "استمرارية ونتائج",
+    "2000",
+    "12 شهراً",
+    ["وصول كامل طوال العام", "المسابح والمرافق", "أفضل توفير سنوي"],
+    "0",
+    "0",
+    { badge: "القيمة الأفضل" },
+  ),
+];
+
 export const defaultSiteConfig: SiteConfig = {
   version: 1,
   hero: {
@@ -83,7 +116,7 @@ export const defaultSiteConfig: SiteConfig = {
   },
   exclusiveBanner: {
     enabled: true,
-    note: "همة نحو اللياقة | باقات حصرية لفترة محدودة",
+    note: "باقات اشتراك شاملة وموحدة في جميع فروعنا بأعلى تجهيز",
   },
   branches: [
     {
@@ -126,82 +159,14 @@ export const defaultSiteConfig: SiteConfig = {
       tabLabel: "فرع الشفاء",
       whatsappPhone: "0534951220",
       contacts: "فرع الشفاء (هاتف: 0534951220 / 0552631967 / 0534909220)",
-      plans: [
-        plan(
-          "shifa-96-days",
-          "96 يوم",
-          "انطلاقة وطنية",
-          "596",
-          "عرض اليوم الوطني",
-          ["دخول النادي", "المرافق الرياضية", "لفترة محدودة"],
-          "96",
-        ),
-        plan(
-          "shifa-3-months",
-          "3 شهور + 96 يوم مجاناً",
-          "الاختيار المفضل",
-          "796",
-          "3 شهور + هدية وطنية",
-          ["دخول النادي", "المسابح والمرافق", "96 يوم مجاناً"],
-          "96",
-          "0",
-          { featured: true, badge: "الأكثر طلباً" },
-        ),
-        plan(
-          "shifa-6-months",
-          "6 شهور + 96 يوم مجاناً",
-          "التزام أقوى",
-          "996",
-          "6 شهور + هدية وطنية",
-          ["دخول النادي", "المسابح والمرافق", "96 يوم مجاناً"],
-          "96",
-        ),
-        plan(
-          "shifa-9-months",
-          "9 شهور + 96 يوم مجاناً",
-          "خطوة طويلة المدى",
-          "1096",
-          "9 شهور + هدية وطنية",
-          ["دخول النادي", "المسابح والمرافق", "96 يوم مجاناً"],
-          "96",
-        ),
-      ],
+      plans: createUnifiedPlans("shifa"),
     },
     mansouraSaadah: {
       label: "فرع المنصورة & فرع السعادة",
       tabLabel: "فرع المنصورة & فرع السعادة",
       whatsappPhone: "0509284419",
       contacts: "فرع المنصورة (0509284419) | فرع السعادة (0552632207)",
-      alert: "العرض بدون تنازل وبدون إيقاف",
-      plans: [
-        plan(
-          "mansoura-saadah-3-months",
-          "ثلاثة شهور",
-          "بداية قوية",
-          "596",
-          "عرض اليوم الوطني",
-          ["دخول النادي", "المسابح والمرافق", "لفترة محدودة"],
-        ),
-        plan(
-          "mansoura-saadah-6-months",
-          "سته شهور",
-          "التزام يصنع الفرق",
-          "796",
-          "عرض اليوم الوطني",
-          ["دخول النادي", "المسابح والمرافق", "لفترة محدودة"],
-        ),
-        plan(
-          "mansoura-saadah-year",
-          "سنة + شهر",
-          "القيمة الأفضل",
-          "996",
-          "12 شهراً + شهر هدية",
-          ["وصول كامل طوال العام", "المسابح والمرافق", "شهر إضافي"],
-          "30",
-          "0",
-          { featured: true, badge: "القيمة الأفضل" },
-        ),
-      ],
+      plans: createUnifiedPlans("mansoura-saadah"),
     },
   },
 };
